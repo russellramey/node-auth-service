@@ -25,6 +25,20 @@ app.use(cors());
 
 /**
 *
+* Database
+*
+**/
+require('./_config/database');
+
+/**
+*
+* Models
+*
+**/
+require('./_models');
+
+/**
+*
 * Server
 *
 **/
