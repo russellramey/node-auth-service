@@ -1,0 +1,8 @@
+# Files
+.DS_Store
+.env
+*.pem
+
+# Directories
+/node_modules/*
+/_support/*

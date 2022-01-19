@@ -1,0 +1,20 @@
+{
+	"name": "node-auth-service",
+	"version": "0.1.0",
+	"description": "RESTful authentication api using Node, Express, Passport JWT and MongoDB.",
+	"main": "index.js",
+	"dependencies": {
+		"cors": "^2.8.5",
+		"dotenv": "^11.0.0",
+		"express": "^4.17.1",
+		"jsonwebtoken": "^8.5.1",
+		"mongoose": "^6.1.1",
+		"passport": "^0.5.0",
+		"passport-jwt": "^4.0.0",
+		"path": "^0.12.7"
+	},
+	"scripts": {
+		"start": "node index.js"
+	},
+	"license": "mit"
+}
