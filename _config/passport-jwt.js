@@ -18,7 +18,7 @@ require('dotenv').config();
 // Options object, matches same options as token issue method
 const options = {
   jwtFromRequest: passportjwt.ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: fs.readFileSync(process.env.PUB_KEY_PATH, 'utf8'),
+  secretOrKey: fs.readFileSync(process.env.KEY_PUB_PATH, 'utf8'),
   algorithms: ['RS256']
 };
 

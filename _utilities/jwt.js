@@ -39,7 +39,7 @@ function generateJWT(obj) {
     try{
 
         // Generate signed token
-        signedToken = jsonwebtoken.sign(payload, fs.readFileSync(process.env.PRIV_KEY_PATH, 'utf8'), options);
+        signedToken = jsonwebtoken.sign(payload, fs.readFileSync(process.env.KEY_PRIV_PATH, 'utf8'), options);
 
     } catch(e) {
 
