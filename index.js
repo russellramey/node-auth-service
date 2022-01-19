@@ -39,6 +39,13 @@ require('./_models');
 
 /**
 *
+* Routes
+*
+**/
+app.use(require('./_routes'));
+
+/**
+*
 * Server
 *
 **/
