@@ -27,7 +27,7 @@ router.get('/list', function(req, res) {
 
 // User
 router.get('/me', passport.authenticate('jwt', { session: false }), function(req, res, next) {
-    return res.status(200).json({ success: true, result: req.user});
+    return res.status(200).json({ success: true, user: req.user});
 });
 
 // Get user token
@@ -85,7 +85,7 @@ router.post('/create', function(req, res) {
 
     // Create new user from request body
     const newUser = new User({
-        nickname: req.body.nickname,
+        username: req.body.username,
         email: req.body.email,
         scopes: ['user']
     });

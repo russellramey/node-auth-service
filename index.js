@@ -39,6 +39,16 @@ require('./_models');
 
 /**
 *
+* Middleware
+*
+**/
+// Local JWT - pass in global passport
+require('./_config/passport-jwt')(passport);
+// Initialize Passport for use in application
+app.use(passport.initialize());
+
+/**
+*
 * Routes
 *
 **/
