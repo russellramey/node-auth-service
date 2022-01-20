@@ -15,14 +15,15 @@ const jwt = require('../_utilities/jwt');
 /**
  *
  * Routes
- * All below routes are prefixed with '/users'
+ * All below routes are prefixed with '/users/*'
  *
  **/
 // List all users
 router.get('/list', function(req, res) {
-    User.find({}).then(users => {
-        res.json(users);
-    });
+    User.find({}).select(['-password', '-salt'])
+        .then(users => {
+            res.json(users);
+        });
 });
 
 // User
