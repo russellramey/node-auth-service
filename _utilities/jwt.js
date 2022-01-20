@@ -62,9 +62,29 @@ function generateJWT(obj) {
 
 /**
 *
+* Parse JWT
+* Read Json Web Token and return token object.
+*
+* @param token: String
+*
+**/
+function parseJWT(token){
+    // Replace token prefix
+    token = token.replace('Bearer ', '');
+    // Decode token
+    let tokenObj = jsonwebtoken.decode(token);
+    // Return data
+    return {
+        token: tokenObj
+    };
+}
+
+/**
+*
 * Export
 *
 **/
 module.exports = {
-    generateJWT
+    generateJWT,
+    parseJWT
 };
