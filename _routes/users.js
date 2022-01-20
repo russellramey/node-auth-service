@@ -27,18 +27,19 @@ router.get('/list', function(req, res) {
 });
 
 // User
-router.get('/me', function(req, res, next) {
-    passport.authenticate('jwt', { session: false }, function(err, user, info) {
+router.get('/me', function(req, res) {
+    // Authenticate request
+    passport.authenticate('jwt', { session: false }, function(err, auth, info) {
 
         // If no user is found
-        if(!user) {
+        if(!auth || !auth.user) {
             return res.status(401).json({ success: false, error: true, message: 'Invalid token' });
         }
 
         // Default return
-        return res.status(200).json({ success: true, user: user });
+        return res.status(200).json({ success: true, user: auth.user });
 
-    })(req, res, next);
+    })(req, res);
 });
 
 // Get user token
