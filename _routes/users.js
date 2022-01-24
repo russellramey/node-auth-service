@@ -7,10 +7,11 @@
 const passport = require('passport');
 const mongoose = require('mongoose');
 const router = require('express').Router();
-const User = mongoose.model('User');
-const Token = mongoose.model('Token');
 const hashs = require('../_utilities/hash');
 const jwt = require('../_utilities/jwt');
+const client = require('../_utilities/client');
+const User = mongoose.model('User');
+const Token = mongoose.model('Token');
 
 /**
  *
@@ -60,7 +61,7 @@ router.post('/token', function(req, res) {
             const userToken = new Token({
                 hash: hashs.hashString(Date.now().toString(), user.salt).hash,
                 user_id: user._id,
-                client: "Client Name"
+                client: client.parseUserAgent(req.headers['user-agent'])
             });
 
             // Create new JWT from token object

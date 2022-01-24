@@ -31,7 +31,7 @@ const TokenSchema = new mongoose.Schema({
     expires_at: {
         type: Date
     },
-    client: String,
+    client: Object,
     hash: String,
 });
 

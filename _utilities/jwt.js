@@ -24,8 +24,9 @@ function generateJWT(obj) {
     // Create payload object
     const payload = {
         sub: obj._id,
-        jti: obj.hash,
-        iat: Date.now()
+        jti: (obj.hash ? obj.hash: null),
+        iat: Date.now(),
+        client: (obj.client ? obj.client: null)
     };
 
     // Create options object
