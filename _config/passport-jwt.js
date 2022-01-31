@@ -17,14 +17,17 @@ require('dotenv').config();
 **/
 // Options object, matches same options as token issue method
 const options = {
-  jwtFromRequest: passportjwt.ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: fs.readFileSync(process.env.KEY_PUB_PATH, 'utf8'),
-  algorithms: ['RS256']
+    // Authentication header bearer token from request
+    jwtFromRequest: passportjwt.ExtractJwt.fromAuthHeaderAsBearerToken(),
+    // Public key from keypair
+    secretOrKey: fs.readFileSync(process.env.KEY_PUB_PATH, 'utf8'),
+    // Encryption algorithum
+    algorithms: ['RS256']
 };
 
 /**
 *
-* Passport Strategy
+* Passport JWT Strategy
 *
 **/
 // Global passport object passed from main app config
@@ -32,10 +35,7 @@ module.exports = (passport) => {
     // The JWT payload is passed into the verify callback
     passport.use(new passportjwt.Strategy(options, function(jwt_payload, done){
 
-    	// Debug
-        // console.log(jwt_payload);
-
-        // Lookup user from token payload id
+        // Find Token from JWT payload id
         Token.findOne({_id: jwt_payload.sub}, function(err, token){
 
             // If any error
@@ -43,10 +43,10 @@ module.exports = (passport) => {
             	// Return error
                 return done(err, false);
             }
-            // If user is found
+            // If Token is found, and is valid
             if (token && (token.hash === jwt_payload.jti)) {
 
-
+                // Find user from Token.user_id
                 User.findOne({_id: token.user_id}, function(err, user){
 
                     // If any error
@@ -54,15 +54,17 @@ module.exports = (passport) => {
                     	// Return error
                         return done(err, false);
                     }
+
+                    // If user is found
                     if(user){
-                        // Return user object
+                        // Return user and token objects
                         return done(null, { user, token });
                     }
 
                     // Return false
                     return done(null, false);
-                }).select(['-password', '-salt']);
 
+                }).select(['-password', '-salt']); // Remove password and salt keys
 
             } else {
             	// Return false

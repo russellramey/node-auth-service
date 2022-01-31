@@ -23,17 +23,22 @@ function generateJWT(obj) {
 
     // Create payload object
     const payload = {
+        // Subject
         sub: obj._id,
+        // Unique ID
         jti: (obj.hash ? obj.hash: null),
+        // Issued date
         iat: Date.now(),
+        // Client/device information
         client: (obj.client ? obj.client: null)
     };
 
     // Create options object
     let options = {
+        // Expiration data
         expiresIn: (604800 * 1000), // 7 days from issue
-        algorithm: 'RS256',
-        // message: null
+        // Desired algorithm (must match parser)
+        algorithm: 'RS256'
     };
 
     // Try to generate new JWT
@@ -48,16 +53,13 @@ function generateJWT(obj) {
         signedToken = false;
         // Set expires to null
         options.expiresIn = null;
-        // Set error message
-        options.message = e;
     }
 
     // Return token object
     return {
         token: signedToken,
         created: payload.iat,
-        expires: payload.iat + options.expiresIn,
-        message: options.message
+        expires: payload.iat + options.expiresIn
     };
 }
 
@@ -75,9 +77,7 @@ function parseJWT(token){
     // Decode token
     let tokenObj = jsonwebtoken.decode(token);
     // Return data
-    return {
-        token: tokenObj
-    };
+    return { tokenObj };
 }
 
 /**

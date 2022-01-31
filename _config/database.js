@@ -1,3 +1,4 @@
+/*jshint esversion: 6*/
 /**
 *
 * Dependencies
@@ -27,7 +28,7 @@ if (process.env.NODE_ENV === 'production') {
     });
     // When connection is successful
     mongoose.connection.on('connected', () => {
-        console.log('Production database connected');
+        console.log('Production database connection established');
     });
 
 } else {
@@ -39,7 +40,7 @@ if (process.env.NODE_ENV === 'production') {
     });
     // When connection is successful
     mongoose.connection.on('connected', () => {
-        console.log('Database connected');
+        console.log('Database connection established');
     });
 
 }

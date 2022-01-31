@@ -27,7 +27,7 @@ router.get('/list', function(req, res) {
     User.find({}).select(['-password', '-salt'])
         .then(users => {
             // Return all users
-            res.status(200).json(users);
+            return res.status(200).json(users);
         });
 });
 
@@ -50,18 +50,20 @@ router.get('/me', function(req, res) {
 });
 
 // Get user token
+// Issue new access token (jwt) to user
 router.post('/token', function(req, res) {
+    // Find single user by email
     User.findOne({ email: req.body.email }).then( user => {
         // If no user is found, or no password in request
         if(!user || !req.body.password) {
             return res.status(401).json({ success: false, msg: "Invalid credentials" });
         }
 
-        // Check password is valid
-        const isValid = hashs.compareHashString(req.body.password, user.password, user.salt);
+        // Check req.password hash matches found user passowrd hash
+        const isValidPass = hashs.compareHashString(req.body.password, user.password, user.salt);
 
         // If password is valid
-        if (isValid) {
+        if (isValidPass) {
 
             // Create new token object
             const userToken = new Token({
@@ -70,36 +72,38 @@ router.post('/token', function(req, res) {
                 client: client.parseUserAgent(req.headers['user-agent'])
             });
 
-            // Create new JWT from token object
+            // Create new JWT from userToken object
             const jwtObject = jwt.generateJWT(userToken);
 
             // If JWT was created successfully
             if(jwtObject.token){
 
-                // Update timestamps
+                // Update timestamps on userToken to match JWT timestamps
                 userToken.created_at = jwtObject.created;
                 userToken.expires_at = jwtObject.expires;
 
-                // Save token object
+                // Save userToken object
                 userToken.save()
                     .then((token) => {
-                        res.status(200).json({ success: true, result: jwtObject });
+                        // Return success with token
+                        return res.status(200).json({ success: true, result: jwtObject });
                     })
-                    // Catch any errors
                     .catch((err) => {
-                        // Bad request
-                        res.status(400).json({ success: false, result: err });
+                        // Return error
+                        return res.status(400).json({ success: false, result: err });
                     });
             }
 
         } else {
-            res.status(401).json({ success: false, msg: "Invalid credentials" });
+            // Return error
+            return res.status(401).json({ success: false, msg: "Invalid credentials" });
         }
 
     });
 });
 
 // Create new user
+// Add user to database
 router.post('/create', function(req, res) {
 
     // Create new user from request body
@@ -111,11 +115,11 @@ router.post('/create', function(req, res) {
 
     // If password is present
     if(req.body.password){
-        // Hash password
+        // Hash req.password string
         let password = hashs.hashString(req.body.password);
-        // Set password as hash
+        // Set password hash string
         newUser.password = password.hash;
-        // Set password salt
+        // Set password salt string
         newUser.salt = password.salt;
     }
 
@@ -124,18 +128,17 @@ router.post('/create', function(req, res) {
         // Save user object
         newUser.save()
             .then((user) => {
-                // Successful request
-                res.json({ success: true, user: user });
+                // Return success with user
+                return res.json({ success: true, user: user });
             })
-            // Catch any errors
             .catch((err) => {
-                // Bad request
-                res.status(400).json({ success: false, result: err });
+                // Return error
+                return res.status(400).json({ success: false, result: err });
             });
         // Catch any errors
     } catch (err) {
         // Bad request
-        res.status(400).json({ success: false, result: err });
+        return res.status(400).json({ success: false, result: err });
     }
 });
 
