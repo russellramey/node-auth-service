@@ -19,25 +19,31 @@ const Token = mongoose.model('Token');
  * All below routes are prefixed with '/users/*'
  *
  **/
-// List all users
+// User List
+// Returns all users
 router.get('/list', function(req, res) {
+    // Find all users
+    // Remove passowrds and salt keys
     User.find({}).select(['-password', '-salt'])
         .then(users => {
-            res.json(users);
+            // Return all users
+            res.status(200).json(users);
         });
 });
 
-// User
+// User Profile
+// Return single user profile from provided JWT
 router.get('/me', function(req, res) {
-    // Authenticate request
+    // Authenticate request, Passport Middleware
     passport.authenticate('jwt', { session: false }, function(err, auth, info) {
 
-        // If no user is found
+        // If no user, or unauthorized
         if(!auth || !auth.user) {
+            // Return error
             return res.status(401).json({ success: false, error: true, message: 'Invalid token' });
         }
 
-        // Default return
+        // Return user
         return res.status(200).json({ success: true, user: auth.user });
 
     })(req, res);
