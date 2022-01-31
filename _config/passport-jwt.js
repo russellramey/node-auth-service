@@ -44,7 +44,7 @@ module.exports = (passport) => {
                 return done(err, false);
             }
             // If Token is found, and is valid
-            if (token && (token.hash === jwt_payload.jti)) {
+            if (token && !token.revoked && (token.hash === jwt_payload.jti)) {
 
                 // Find user from Token.user_id
                 User.findOne({_id: token.user_id}, function(err, user){

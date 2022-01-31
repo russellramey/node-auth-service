@@ -102,6 +102,40 @@ router.post('/token', function(req, res) {
     });
 });
 
+// Revoke User Token
+router.get('/token/revoke', function(req, res) {
+    // Authenticate request, Passport Middleware
+    passport.authenticate('jwt', { session: false }, function(err, auth, info) {
+
+        // If no user, or unauthorized
+        if(!auth || !auth.user) {
+            // Return error
+            return res.status(401).json({ success: false, error: true, message: 'Invalid token' });
+        }
+
+        // Try to update Token object
+        try{
+            // Set token revoked to true
+            auth.token.revoked = true;
+            // Save token update
+            auth.token.save()
+                .then(token => {
+                    // Return token
+                    return res.status(200).json({ success: true, token: token });
+                })
+                .catch(err => {
+                    // Return error
+                    return res.status(400).json({ success: false, result: err });
+                });
+        // Catch any errors
+        } catch(e){
+            // Return error
+            return res.status(400).json({ success: false, result: e });
+        }
+
+    })(req, res);
+});
+
 // Create new user
 // Add user to database
 router.post('/create', function(req, res) {
@@ -135,7 +169,7 @@ router.post('/create', function(req, res) {
                 // Return error
                 return res.status(400).json({ success: false, result: err });
             });
-        // Catch any errors
+    // Catch any errors
     } catch (err) {
         // Bad request
         return res.status(400).json({ success: false, result: err });
