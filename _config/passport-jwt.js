@@ -5,9 +5,9 @@
 *
 **/
 const passportjwt = require('passport-jwt');
-const User = require('mongoose').model('User');
-const Token = require('mongoose').model('Token');
 const fs = require('fs');
+const users = require('../_utilities/users');
+const tokens = require('../_utilities/tokens');
 require('dotenv').config();
 
 /**
@@ -34,43 +34,36 @@ const options = {
 module.exports = (passport) => {
     // The JWT payload is passed into the verify callback
     passport.use(new passportjwt.Strategy(options, function(jwt_payload, done){
+        // Find token
+        tokens.getTokens({ _id: jwt_payload.sub }, [], true)
+            .then( token => {
+                // If Token is found, and is valid
+                if (token && !token.revoked && (token.hash === jwt_payload.jti)) {
+                    // Find user
+                    users.getUsers({_id: token.user_id}, ['-password', '-salt'], true)
+                        .then( user => {
 
-        // Find Token from JWT payload id
-        Token.findOne({_id: jwt_payload.sub}, function(err, token){
+                            // If user is found
+                            if(user){
+                                // Return user and token objects
+                                return done(null, { user, token });
+                            }
 
-            // If any error
-            if (err) {
-            	// Return error
-                return done(err, false);
-            }
-            // If Token is found, and is valid
-            if (token && !token.revoked && (token.hash === jwt_payload.jti)) {
+                            // Return false
+                            return done(null, false);
+                        })
+                        .catch( err => {
+                            return done(err, false);
+                        });
 
-                // Find user from Token.user_id
-                User.findOne({_id: token.user_id}, function(err, user){
-
-                    // If any error
-                    if (err) {
-                    	// Return error
-                        return done(err, false);
-                    }
-
-                    // If user is found
-                    if(user){
-                        // Return user and token objects
-                        return done(null, { user, token });
-                    }
-
-                    // Return false
+                } else {
+                	// Return false
                     return done(null, false);
-
-                }).select(['-password', '-salt']); // Remove password and salt keys
-
-            } else {
-            	// Return false
-                return done(null, false);
-            }
-        });
+                }
+            })
+            .catch( error => {
+                return done(error, false);
+            });
 
     }));
 };

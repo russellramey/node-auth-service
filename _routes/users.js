@@ -5,13 +5,10 @@
  *
  **/
 const passport = require('passport');
-const mongoose = require('mongoose');
 const router = require('express').Router();
-const hashs = require('../_utilities/hash');
-const jwt = require('../_utilities/jwt');
-const client = require('../_utilities/client');
-const User = mongoose.model('User');
-const Token = mongoose.model('Token');
+const hash = require('../_utilities/hash');
+const users = require('../_utilities/users');
+const tokens = require('../_utilities/tokens');
 
 /**
  *
@@ -25,11 +22,14 @@ const Token = mongoose.model('Token');
  **/
 router.get('/list', function(req, res) {
     // Find all users
-    // Remove passowrds and salt keys
-    User.find({}).select(['-password', '-salt'])
-        .then(users => {
-            // Return all users
-            return res.status(200).json(users);
+    users.getUsers({}, ['-password', '-salt'])
+        .then( users => {
+            // Return users
+            return res.status(200).json({ success: true, users: users });
+        })
+        .catch( err => {
+            // Return error
+            return res.status(400).json({ success: false, error: err });
         });
 });
 
@@ -50,7 +50,7 @@ router.get('/me', function(req, res) {
         // If no user, or unauthorized
         if(!auth || !auth.user) {
             // Return error
-            return res.status(401).json({ success: false, error: true, message: 'Invalid token' });
+            return res.status(401).json({ success: false, error: 'Invalid token' });
         }
 
         // Return user
@@ -72,53 +72,43 @@ router.get('/me', function(req, res) {
  **/
 router.post('/token', function(req, res) {
     // Find single user by email
-    User.findOne({ email: req.body.email }).then( user => {
-        // If no user is found, or no password in request
-        if(!user || !req.body.password) {
-            return res.status(401).json({ success: false, msg: "Invalid credentials" });
-        }
+    users.getUsers({ email: req.body.email }, [], true)
+        .then( user => {
+            // If no user is found, or no password in request
+            if(!user || !req.body.password) {
+                return res.status(401).json({ success: false, msg: "Invalid credentials" });
+            }
 
-        // Check req.password hash matches found user passowrd hash
-        const isValidPass = hashs.compareHashString(req.body.password, user.password, user.salt);
+            // Check req.password hash matches found user passowrd hash
+            const isValidPass = hash.compareHashString(req.body.password, user.password, user.salt);
 
-        // If password is valid
-        if (isValidPass) {
+            // If password is valid
+            if (isValidPass) {
 
-            // Create new token object
-            const userToken = new Token({
-                hash: hashs.hashString(Date.now().toString(), user.salt).hash,
-                user_id: user._id,
-                client: client.parseUserAgent(req.headers['user-agent'])
-            });
-
-            // Create new JWT from userToken object
-            const jwtObject = jwt.generateJWT(userToken);
-
-            // If JWT was created successfully
-            if(jwtObject.token){
-
-                // Update timestamps on userToken to match JWT timestamps
-                userToken.created_at = jwtObject.created;
-                userToken.expires_at = jwtObject.expires;
+                // Create new token object
+                const userToken = tokens.newToken(user, req.headers['user-agent']);
 
                 // Save userToken object
-                userToken.save()
+                userToken.token.save()
                     .then((token) => {
                         // Return success with token
-                        return res.status(200).json({ success: true, result: jwtObject });
+                        return res.status(200).json({ success: true, result: userToken.jwt });
                     })
                     .catch((err) => {
                         // Return error
-                        return res.status(400).json({ success: false, result: err });
+                        return res.status(400).json({ success: false, error: err });
                     });
+
+            } else {
+                // Return error
+                return res.status(401).json({ success: false, error: "Invalid credentials" });
             }
 
-        } else {
+        })
+        .catch( err => {
             // Return error
-            return res.status(401).json({ success: false, msg: "Invalid credentials" });
-        }
-
-    });
+            return res.status(400).json({ success: false, error: err });
+        });
 });
 
 /**
@@ -137,28 +127,21 @@ router.get('/token/revoke', function(req, res) {
         // If no user, or unauthorized
         if(!auth || !auth.user) {
             // Return error
-            return res.status(401).json({ success: false, error: true, message: 'Invalid token' });
+            return res.status(401).json({ success: false, error: 'Invalid token' });
         }
 
-        // Try to update Token object
-        try{
-            // Set token revoked to true
-            auth.token.revoked = true;
-            // Save token update
-            auth.token.save()
-                .then(token => {
-                    // Return token
-                    return res.status(200).json({ success: true, token: token });
-                })
-                .catch(err => {
-                    // Return error
-                    return res.status(400).json({ success: false, result: err });
-                });
-        // Catch any errors
-        } catch(e){
-            // Return error
-            return res.status(400).json({ success: false, result: e });
-        }
+        // Set token revoked to true
+        auth.token.revoked = true;
+        // Save updated token
+        auth.token.save()
+            .then(token => {
+                // Return token
+                return res.status(200).json({ success: true, token: token });
+            })
+            .catch(err => {
+                // Return error
+                return res.status(400).json({ success: false, error: err });
+            });
 
     })(req, res);
 });
@@ -177,40 +160,19 @@ router.get('/token/revoke', function(req, res) {
  **/
 router.post('/create', function(req, res) {
 
-    // Create new user from request body
-    const newUser = new User({
-        username: req.body.username,
-        email: req.body.email,
-        scopes: ['user']
-    });
+    // Create new user object
+    const newUser = users.newUser(req.body);
 
-    // If password is present
-    if(req.body.password){
-        // Hash req.password string
-        let password = hashs.hashString(req.body.password);
-        // Set password hash string
-        newUser.password = password.hash;
-        // Set password salt string
-        newUser.salt = password.salt;
-    }
-
-    // Try to save user
-    try {
-        // Save user object
-        newUser.save()
-            .then((user) => {
-                // Return success with user
-                return res.json({ success: true, user: user });
-            })
-            .catch((err) => {
-                // Return error
-                return res.status(400).json({ success: false, result: err });
-            });
-    // Catch any errors
-    } catch (err) {
-        // Bad request
-        return res.status(400).json({ success: false, result: err });
-    }
+    // Save user object
+    newUser.save()
+        .then((user) => {
+            // Return success with user
+            return res.json({ success: true, user: user });
+        })
+        .catch((err) => {
+            // Return error
+            return res.status(400).json({ success: false, error: err });
+        });
 });
 
 /**
