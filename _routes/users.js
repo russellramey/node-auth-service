@@ -15,12 +15,14 @@ const Token = mongoose.model('Token');
 
 /**
  *
- * Routes
- * All below routes are prefixed with '/users/*'
+ * List users
+ * List all users from database
+ * Method: GET
+ * URI: /users/list
+ * @param null
+ * @return users: Array
  *
  **/
-// User List
-// Returns all users
 router.get('/list', function(req, res) {
     // Find all users
     // Remove passowrds and salt keys
@@ -31,8 +33,16 @@ router.get('/list', function(req, res) {
         });
 });
 
-// User Profile
-// Return single user profile from provided JWT
+/**
+ *
+ * User Profile
+ * Return single user profile from provided JWT
+ * Method: GET
+ * URI: /users/me
+ * @param token: String
+ * @return user: Object
+ *
+ **/
 router.get('/me', function(req, res) {
     // Authenticate request, Passport Middleware
     passport.authenticate('jwt', { session: false }, function(err, auth, info) {
@@ -49,8 +59,17 @@ router.get('/me', function(req, res) {
     })(req, res);
 });
 
-// Get user token
-// Issue new access token (jwt) to user
+/**
+ *
+ * Issue user token
+ * Issue new access token (jwt) to user
+ * Method: POST
+ * URI: /users/token
+ * @param email: String
+ * @param password: String
+ * @return token: Object
+ *
+ **/
 router.post('/token', function(req, res) {
     // Find single user by email
     User.findOne({ email: req.body.email }).then( user => {
@@ -102,7 +121,15 @@ router.post('/token', function(req, res) {
     });
 });
 
-// Revoke User Token
+/**
+ *
+ * Revoke user token
+ * Method: GET
+ * URI: /users/token/revoke
+ * @param token: String
+ * @return token: Object
+ *
+ **/
 router.get('/token/revoke', function(req, res) {
     // Authenticate request, Passport Middleware
     passport.authenticate('jwt', { session: false }, function(err, auth, info) {
@@ -136,8 +163,18 @@ router.get('/token/revoke', function(req, res) {
     })(req, res);
 });
 
-// Create new user
-// Add user to database
+/**
+ *
+ * Create new user
+ * Add user to database
+ * Method: POST
+ * URI: /users/create
+ * @param username: String
+ * @param email: String
+ * @param password: String
+ * @return user: Object
+ *
+ **/
 router.post('/create', function(req, res) {
 
     // Create new user from request body
