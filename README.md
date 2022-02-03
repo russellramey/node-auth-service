@@ -55,14 +55,10 @@ Token model
 }
 ```
 
-### Routes
-/users/list
-/users/me
-/users/token
-/users/token/revoke
-/users/create
-/users/update
-/users/delete
-/tokens/list
-/tokens/revoke
-/tokens/delete
+### Model Routes
+GET /users - Return all users
+GET /users/me - Return current user
+GET /tokens - Return all tokens
+
+### Authentication Routes
+/auth/local - Authenticate user via email/password
