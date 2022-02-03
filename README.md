@@ -27,8 +27,6 @@ User model
 ```JS
 {
 	nickname: String,
-    firstname: String,
-    lastname: String,
     email: String,
     email_valid: Boolean,
     password: String,
@@ -56,9 +54,9 @@ Token model
 ```
 
 ### Model Routes
-GET /users - Return all users
-GET /users/me - Return current user
-GET /tokens - Return all tokens
+- GET /users - Return all users
+- GET /users/me - Return current user
+- GET /tokens - Return all tokens
 
 ### Authentication Routes
-/auth/local - Authenticate user via email/password
+- /auth/local - Authenticate user via email/password
