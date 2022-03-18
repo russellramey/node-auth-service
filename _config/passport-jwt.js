@@ -34,35 +34,44 @@ const options = {
 module.exports = (passport) => {
     // The JWT payload is passed into the verify callback
     passport.use(new passportjwt.Strategy(options, function(jwt_payload, done){
+
+        // If jwt is expired
+        if(jwt_payload.exp < Date.now()) {
+            return done(null, false);
+        }
+
         // Find token
         tokens.getTokens({ _id: jwt_payload.sub }, [], true)
             .then( token => {
-                // If Token is found, and is valid
-                if (token && !token.revoked && (token.hash === jwt_payload.jti)) {
-                    // Find user
-                    users.getUsers({_id: token.user_id}, ['-password', '-salt'], true)
-                        .then( user => {
 
-                            // If user is found
-                            if(user){
-                                // Return user and token objects
-                                return done(null, { user, token });
-                            }
-
-                            // Return false
-                            return done(null, false);
-                        })
-                        .catch( err => {
-                            return done(err, false);
-                        });
-
-                } else {
-                	// Return false
+                // If no token, or token expired
+                if(!token || token.revoked || (token.expires_at < Date.now())){
                     return done(null, false);
                 }
+
+                // Find user using token.user_id
+                users.getUsers({_id: token.user_id}, ['-password', '-salt'], true)
+                    .then( user => {
+
+                        // If no user or user id
+                        if(!user || !user._id){
+                            // Return false
+                            return done(null, false);
+                        }
+
+                        // Return user and token objects
+                        return done(null, { user, token });
+
+                    })
+                    .catch( user_err => {
+                        // Return error
+                        return done(user_err, false);
+                    });
+
             })
-            .catch( error => {
-                return done(error, false);
+            .catch( token_err => {
+                // Return error
+                return done(token_err, false);
             });
 
     }));

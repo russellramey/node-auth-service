@@ -22,6 +22,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Allow cors headers for applicaiton
 app.use(cors());
+// Remove eTag header, globally
+app.set('etag', false);
 
 /**
 *

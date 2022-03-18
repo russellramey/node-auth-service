@@ -55,7 +55,7 @@ Token model
 
 ### Model Routes
 - GET /users - Return all users
-- GET /users/me - Return current user
+- GET /users/me - Return authenticated user
 - GET /tokens - Return all tokens
 
 ### Authentication Routes

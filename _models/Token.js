@@ -32,7 +32,8 @@ const TokenSchema = new mongoose.Schema({
         type: Date
     },
     client: Object,
-    hash: String,
+    refresh_token: String,
+    refresh_id: String
 });
 
 /**

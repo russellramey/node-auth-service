@@ -27,9 +27,11 @@ function newToken(user, agent) {
 
     // Create new token model object
     const token = new Token({
-        hash: hash.hashString(Date.now().toString(), user.salt).hash,
         user_id: user._id,
-        client: client.parseUserAgent(agent)
+        client: client.parseUserAgent(agent),
+        refresh_token: hash.hashString(Date.now().toString(), user.salt).hash,
+        refresh_id: null,
+        expires_at: Date.now() + (259200 * 1000), // 3 days from now
     });
 
     // Create new JWT from token model
@@ -37,10 +39,6 @@ function newToken(user, agent) {
 
     // If JWT was created successfully
     if (jwtObject.token) {
-
-        // Update timestamps on userToken to match JWT timestamps
-        token.created_at = jwtObject.created;
-        token.expires_at = jwtObject.expires;
 
         // Return user
         return {

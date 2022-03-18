@@ -7,6 +7,7 @@
 const jsonwebtoken = require('jsonwebtoken');
 const fs = require('fs');
 const path = require('path');
+const hash = require('../_utilities/hash');
 require('dotenv').config();
 
 /**
@@ -26,17 +27,15 @@ function generateJWT(obj) {
         // Subject
         sub: obj._id,
         // Unique ID
-        jti: (obj.hash ? obj.hash: null),
+        jti: hash.hashString((obj.user_id ? obj.user_id : null), obj._id.toString()).hash,
         // Issued date
-        iat: Date.now(),
-        // Client/device information
-        client: (obj.client ? obj.client: null)
+        iat: Date.now()
     };
 
     // Create options object
     let options = {
         // Expiration data
-        expiresIn: (604800 * 1000), // 7 days from issue
+        expiresIn: (86400 * 1000), // 1 days from issue
         // Desired algorithm (must match parser)
         algorithm: 'RS256'
     };
