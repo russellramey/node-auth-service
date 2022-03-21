@@ -18,17 +18,20 @@ const tokens = require('../_models/TokenController');
  * @return tokens: Array
  *
  **/
-router.get('/', function(req, res) {
-    // Find all tokens
-    tokens.getTokens({})
-        .then( tokens => {
-            // Return tokens
-            return res.status(200).json({ success: true, tokens: tokens });
-        })
-        .catch( err => {
-            // Return error
-            return res.status(400).json({ success: false, error: err.message });
-        });
+router.get('/', async function(req, res) {
+    try {
+
+        // Find all users
+        let tokenArr = await tokens.getTokens({}, ['-refresh_token']);
+        // Return users
+        return res.status(200).json({ success: true, tokens: tokenArr });
+
+    } catch (e){
+
+        // Return error
+        return res.status(400).json({ success: false, error: e.message });
+
+    }
 });
 
 /**

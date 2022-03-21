@@ -13,22 +13,25 @@ const users = require('../_models/UserController');
  * List users
  * List all users from database
  * Method: GET
- * URI: /users/list
+ * URI: /users
  * @param null
  * @return users: Array
  *
  **/
-router.get('/', function(req, res) {
-    // Find all users
-    users.getUsers({}, ['-password', '-salt'])
-        .then( users => {
-            // Return users
-            return res.status(200).json({ success: true, users: users });
-        })
-        .catch( err => {
-            // Return error
-            return res.status(400).json({ success: false, error: err.message });
-        });
+router.get('/', async function(req, res) {
+    try {
+
+        // Find all users
+        let userArr = await users.getUsers({}, ['-password', '-salt']);
+        // Return users
+        return res.status(200).json({ success: true, users: userArr });
+
+    } catch (e){
+
+        // Return error
+        return res.status(400).json({ success: false, error: e.message });
+
+    }
 });
 
 /**
