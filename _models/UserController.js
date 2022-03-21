@@ -15,7 +15,7 @@ const hash = require('../_utilities/hash');
  * @param data: Object
  * @return user: Object
  **/
-function newUser(data) {
+const newUser = (data) => {
 
     // Validate data params
     if (!data || !data.email || !data.password) {
@@ -36,7 +36,7 @@ function newUser(data) {
 
     // Return user
     return user;
-}
+};
 
 /**
  *
@@ -47,7 +47,7 @@ function newUser(data) {
  * @param findOne: Boolean
  * @return users: Array | Object
  **/
-async function getUsers(query={}, keys=[], findOne=false){
+const getUsers = async (query={}, keys=[], findOne=false) => {
 
     // Users placeholder
     let users = [];
@@ -63,7 +63,7 @@ async function getUsers(query={}, keys=[], findOne=false){
 
     // Find multiple users based on params
     return users;
-}
+};
 
 /**
  *

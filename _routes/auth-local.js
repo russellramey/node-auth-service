@@ -19,20 +19,23 @@ const jwt = require('../_utilities/jwt');
  * @return res: Response object
  *
  **/
-const createUser = (req, res) => {
+const createUser = async (req, res) => {
     // Create new user object
-    const newUser = users.newUser(req.body);
+    let user = users.newUser(req.body);
 
-    // Save user object
-    newUser.save()
-        .then((user) => {
-            // Return success with user
-            return res.json({ success: true, user: user });
-        })
-        .catch((err) => {
-            // Return error
-            return res.status(400).json({ success: false, error: err.message });
-        });
+    try{
+
+        // Save new user
+        user = await user.save();
+        // Return success with user
+        return res.json({ success: true, user: user });
+
+    } catch(e){
+
+        // Return error
+        return res.status(400).json({ success: false, error: e.message });
+
+    }
 };
 
 /**
@@ -44,61 +47,59 @@ const createUser = (req, res) => {
  * @return auth: Object
  *
  **/
-const authenticateUser = (req, res) => {
-    // Find single user by email
-    users.getUsers({ email: req.body.email }, [], true)
-        .then( user => {
-            // If no user is found, or no password in request
-            if(!user || !req.body.password || user.provider.name !== 'local') {
-                return res.status(401).json({ success: false, msg: "Invalid credentials" });
-            }
+const authenticateUser = async (req, res) => {
+    try {
+        // Find user by email
+        let user = await users.getUsers({ email: req.body.email }, [], true);
 
-            // Check req.password hash matches found user passowrd hash
-            const isValidPass = hash.compareHashString(req.body.password, user.password, user.salt);
+        // If no user is found, or no password in request
+        if(!user || !req.body.password || user.provider.name !== 'local') {
+            return res.status(401).json({ success: false, message: "Invalid credentials" });
+        }
 
-            // If password is valid
-            if (isValidPass) {
+        // Check req.password hash matches found user passowrd hash
+        const isValidPass = hash.compareHashString(req.body.password, user.password, user.salt);
 
-                // Create new token object
-                const userToken = tokens.newToken(user, req.headers['user-agent']);
+        // If password is not valid
+        if (!isValidPass) {
+            return res.status(401).json({ success: false, message: "Invalid credentials" });
+        }
 
-                // Save userToken object
-                userToken.save()
-                    .then((token) => {
-                        // Create new JWT from token model
-                        const jwtObject = jwt.generateJWT(token);
+        // Create new token object
+        const userToken = tokens.newToken(user, req.headers['user-agent']);
+        // Save token
+        let token = await userToken.save();
 
-                        // If JWT was created successfully
-                        if (!jwtObject.token) {
-                            // Return error
-                            return res.status(400).json({ success: false, error: 'JWT failed to generate.' });
-                        }
+        // If no user is found, or no password in request
+        if(!token || !token._id) {
+            return res.status(400).json({ success: false, message: "Failed to save Token object." });
+        }
 
-                        // Set refresh token cookie
-                        res.cookie('testcookie', token.refresh_token, {
-                            httpOnly: true,
-                            sameSite: 'none',
-                            secure: false
-                        });
+        // Create new JWT from token model
+        const jwtObject = jwt.generateJWT(token);
 
-                        // Return success with token
-                        return res.status(200).json({ success: true, auth: jwtObject });
-                    })
-                    .catch((token_error) => {
-                        // Return error
-                        return res.status(400).json({ success: false, error: token_error.message });
-                    });
+        // If JWT was created successfully
+        if (!jwtObject.token) {
+           // Return error
+           return res.status(400).json({ success: false, error: 'Failed to generate JWT from Token object.' });
+        }
 
-            } else {
-                // Return error
-                return res.status(401).json({ success: false, error: "Invalid credentials" });
-            }
-
-        })
-        .catch( user_error => {
-            // Return error
-            return res.status(400).json({ success: false, error: user_error.message });
+        // Set refresh token cookie
+        res.cookie('testcookie', token.refresh_token, {
+           httpOnly: true,
+           sameSite: 'none',
+           secure: false
         });
+
+        // Return success with token
+        return res.status(200).json({ success: true, auth: jwtObject });
+
+    } catch (e) {
+
+        // Return error
+        return res.status(400).json({ success: false, error: e.message });
+
+    }
 };
 
 /**

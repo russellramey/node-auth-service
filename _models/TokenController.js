@@ -17,7 +17,7 @@ const client = require('../_utilities/client');
  * @param agent: Object / String
  * @return Object: token
  **/
-function newToken(user, agent) {
+const newToken = (user, agent) => {
 
     // Validate user params
     if (!user || !user._id || !user.salt || !agent) {
@@ -35,7 +35,7 @@ function newToken(user, agent) {
 
     // Return data
     return token;
-}
+};
 
 /**
  *
@@ -46,7 +46,7 @@ function newToken(user, agent) {
  * @param findOne: Boolean
  * @return tokens: Array | Object
  **/
-async function getTokens(query={}, keys=[], findOne=false){
+const getTokens = async (query={}, keys=[], findOne=false) => {
 
     // Users placeholder
     let tokens;
@@ -62,7 +62,7 @@ async function getTokens(query={}, keys=[], findOne=false){
 
     // Return data
     return tokens;
-}
+};
 
 /**
  *
