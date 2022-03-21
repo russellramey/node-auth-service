@@ -5,8 +5,8 @@
  *
  **/
 const mongoose = require('mongoose');
-const hash = require('../_utilities/hash');
 const User = mongoose.model('User');
+const hash = require('../_utilities/hash');
 
 /**
  *

@@ -5,9 +5,9 @@
  *
  **/
 const router = require('express').Router();
+const users = require('../_models/UserController');
+const tokens = require('../_models/TokenController');
 const hash = require('../_utilities/hash');
-const users = require('../_utilities/users');
-const tokens = require('../_utilities/tokens');
 const jwt = require('../_utilities/jwt');
 
 /**
@@ -73,6 +73,13 @@ const authenticateUser = (req, res) => {
                             // Return error
                             return res.status(400).json({ success: false, error: 'JWT failed to generate.' });
                         }
+
+                        // Set refresh token cookie
+                        res.cookie('testcookie', token.refresh_token, {
+                            httpOnly: true,
+                            sameSite: 'none',
+                            secure: false
+                        });
 
                         // Return success with token
                         return res.status(200).json({ success: true, auth: jwtObject });

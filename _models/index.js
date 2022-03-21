@@ -4,8 +4,8 @@
 * Dependencies
 *
 **/
-const User = require('./User')
-const Token = require('./Token')
+const User = require('./User');
+const Token = require('./Token');
 
 /**
 *

@@ -5,8 +5,8 @@
  *
  **/
 const router = require('express').Router();
-const users = require('../_utilities/users');
-const tokens = require('../_utilities/tokens');
+const users = require('../_models/UserController');
+const tokens = require('../_models/TokenController');
 
 /**
  *

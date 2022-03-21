@@ -5,9 +5,9 @@
 *
 **/
 const passportjwt = require('passport-jwt');
+const users = require('../_models/UserController');
+const tokens = require('../_models/TokenController');
 const fs = require('fs');
-const users = require('../_utilities/users');
-const tokens = require('../_utilities/tokens');
 require('dotenv').config();
 
 /**

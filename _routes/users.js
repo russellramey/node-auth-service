@@ -6,7 +6,7 @@
  **/
 const passport = require('passport');
 const router = require('express').Router();
-const users = require('../_utilities/users');
+const users = require('../_models/UserController');
 
 /**
  *

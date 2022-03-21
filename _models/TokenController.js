@@ -5,9 +5,9 @@
  *
  **/
 const mongoose = require('mongoose');
+const Token = mongoose.model('Token');
 const hash = require('../_utilities/hash');
 const client = require('../_utilities/client');
-const Token = mongoose.model('Token');
 
 /**
  *
