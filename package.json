@@ -4,13 +4,14 @@
 	"description": "RESTful authentication api using Node, Express, Passport JWT and MongoDB.",
 	"main": "index.js",
 	"dependencies": {
+		"cookie-parser": "^1.4.6",
+		"cors": "^2.8.5",
+		"dotenv": "^11.0.0",
 		"express": "^4.17.1",
+		"jsonwebtoken": "^8.5.1",
 		"mongoose": "^6.1.1",
 		"passport": "^0.5.0",
 		"passport-jwt": "^4.0.0",
-		"jsonwebtoken": "^8.5.1",
-		"cors": "^2.8.5",
-		"dotenv": "^11.0.0",
 		"ua-parser-js": "^1.0.2"
 	},
 	"scripts": {

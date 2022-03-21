@@ -8,6 +8,7 @@ const router = require('express').Router();
 const hash = require('../_utilities/hash');
 const users = require('../_utilities/users');
 const tokens = require('../_utilities/tokens');
+const jwt = require('../_utilities/jwt');
 
 /**
  *
@@ -62,14 +63,23 @@ const authenticateUser = (req, res) => {
                 const userToken = tokens.newToken(user, req.headers['user-agent']);
 
                 // Save userToken object
-                userToken.token.save()
+                userToken.save()
                     .then((token) => {
+                        // Create new JWT from token model
+                        const jwtObject = jwt.generateJWT(token);
+
+                        // If JWT was created successfully
+                        if (!jwtObject.token) {
+                            // Return error
+                            return res.status(400).json({ success: false, error: 'JWT failed to generate.' });
+                        }
+
                         // Return success with token
-                        return res.status(200).json({ success: true, auth: userToken.jwt });
+                        return res.status(200).json({ success: true, auth: jwtObject });
                     })
-                    .catch((err) => {
+                    .catch((token_error) => {
                         // Return error
-                        return res.status(400).json({ success: false, error: err.message });
+                        return res.status(400).json({ success: false, error: token_error.message });
                     });
 
             } else {
@@ -78,9 +88,9 @@ const authenticateUser = (req, res) => {
             }
 
         })
-        .catch( err => {
+        .catch( user_error => {
             // Return error
-            return res.status(400).json({ success: false, error: err.message });
+            return res.status(400).json({ success: false, error: user_error.message });
         });
 };
 

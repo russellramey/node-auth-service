@@ -5,6 +5,7 @@
 *
 **/
 const express = require("express");
+const cookieParser = require("cookie-parser");
 const passport = require('passport');
 const cors = require("cors");
 
@@ -15,13 +16,14 @@ const cors = require("cors");
 **/
 // Create the Express application
 const app = express();
-
-// Configure Express to use json as body parser
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Allow cors headers for applicaiton
-app.use(cors());
+// App configuration
+app.use([
+    cookieParser(), // Cookie parser
+    express.json(), // Express json parser
+    express.urlencoded({ extended: true }), // Express url parser
+    passport.initialize(), // Passport support
+    cors() // Cors headers
+]);
 // Remove eTag header, globally
 app.set('etag', false);
 
@@ -46,8 +48,6 @@ require('./_models');
 **/
 // Local JWT - pass in global passport
 require('./_config/passport-jwt')(passport);
-// Initialize Passport for use in application
-app.use(passport.initialize());
 
 /**
 *

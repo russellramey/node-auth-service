@@ -6,7 +6,6 @@
  **/
 const mongoose = require('mongoose');
 const hash = require('../_utilities/hash');
-const jwt = require('../_utilities/jwt');
 const client = require('../_utilities/client');
 const Token = mongoose.model('Token');
 
@@ -16,7 +15,7 @@ const Token = mongoose.model('Token');
  * Create a new user from User Model.
  * @param user: Object
  * @param agent: Object / String
- * @return Object: {token, jwt}
+ * @return Object: token
  **/
 function newToken(user, agent) {
 
@@ -34,21 +33,8 @@ function newToken(user, agent) {
         expires_at: Date.now() + (259200 * 1000), // 3 days from now
     });
 
-    // Create new JWT from token model
-    const jwtObject = jwt.generateJWT(token);
-
-    // If JWT was created successfully
-    if (jwtObject.token) {
-
-        // Return user
-        return {
-            token: token,
-            jwt: jwtObject
-        };
-
-    } else {
-        return false;
-    }
+    // Return data
+    return token;
 }
 
 /**
@@ -74,7 +60,7 @@ async function getTokens(query={}, keys=[], findOne=false){
         tokens = await Token.find(query).select(keys);
     }
 
-    // Find multiple users based on params
+    // Return data
     return tokens;
 }
 
