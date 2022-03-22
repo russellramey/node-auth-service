@@ -33,7 +33,7 @@ const createUser = async (req, res) => {
     } catch(e){
 
         // Return error
-        return res.status(400).json({ success: false, error: e.message });
+        return res.status(400).json({ success: false, error:'createUser: ' + e.message });
 
     }
 };
@@ -50,8 +50,7 @@ const createUser = async (req, res) => {
 const authenticateUser = async (req, res) => {
     try {
         // Find user by email
-        let user = await users.getUsers({ email: req.body.email }, [], true);
-
+        const user = await users.getUsers({ email: req.body.email }, [], true);
         // If no user is found, or no password in request
         if(!user || !req.body.password || user.provider.name !== 'local') {
             return res.status(401).json({ success: false, message: "Invalid credentials" });
@@ -59,45 +58,43 @@ const authenticateUser = async (req, res) => {
 
         // Check req.password hash matches found user passowrd hash
         const isValidPass = hash.compareHashString(req.body.password, user.password, user.salt);
-
         // If password is not valid
         if (!isValidPass) {
             return res.status(401).json({ success: false, message: "Invalid credentials" });
         }
 
-        // Create new token object
+        // Create new Token object
         const userToken = tokens.newToken(user, req.headers['user-agent']);
-        // Save token
-        let token = await userToken.save();
-
-        // If no user is found, or no password in request
-        if(!token || !token._id) {
+        // If no userToken or no userToken ID
+        if(!userToken || !userToken._id) {
             return res.status(400).json({ success: false, message: "Failed to save Token object." });
         }
 
         // Create new JWT from token model
-        const jwtObject = jwt.generateJWT(token);
-
-        // If JWT was created successfully
+        const jwtObject = jwt.generateJWT(userToken);
+        // If JWT was not created
         if (!jwtObject.token) {
            // Return error
            return res.status(400).json({ success: false, error: 'Failed to generate JWT from Token object.' });
         }
 
+        // Save Token
+        await userToken.save();
+
         // Set refresh token cookie
-        res.cookie('testcookie', token.refresh_token, {
+        res.cookie('testcookie', userToken.refresh_token, {
            httpOnly: true,
            sameSite: 'none',
            secure: false
         });
 
-        // Return success with token
+        // Return success
         return res.status(200).json({ success: true, auth: jwtObject });
 
     } catch (e) {
 
         // Return error
-        return res.status(400).json({ success: false, error: e.message });
+        return res.status(400).json({ success: false, error: 'authenticateUser: ' + e.message });
 
     }
 };
