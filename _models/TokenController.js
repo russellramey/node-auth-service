@@ -66,10 +66,35 @@ const getTokens = async (query={}, keys=[], findOne=false) => {
 
 /**
  *
+ * Generate Refresh token
+ * Create new token, revoke current token.
+ * @param currentToken: Object
+ * @param client: String
+ * @return refreshToken: Object
+ **/
+const refreshToken = async (currentToken, client) => {
+    // Create new token to replace current token
+    const refreshToken = newToken(currentToken.user, client);
+
+    // Update current token
+    currentToken.revoked = true; // Revoke current token
+    currentToken.refresh_id = refreshToken._id; // Update current token with refreshed id
+    // Save current token
+    await currentToken.save();
+
+    // Return refreshToken
+    return refreshToken;
+};
+
+
+
+/**
+ *
  * Export
  *
  **/
 module.exports = {
     newToken,
-    getTokens
+    getTokens,
+    refreshToken
 };

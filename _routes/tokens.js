@@ -7,6 +7,7 @@
 const router = require('express').Router();
 const users = require('../_models/UserController');
 const tokens = require('../_models/TokenController');
+const jwt = require('../_utilities/jwt');
 
 /**
  *
@@ -62,8 +63,34 @@ router.post('/refresh', async function(req, res) {
             return res.status(401).json({ success: false, error: 'Invalid refresh token.' });
         }
 
+        // Create new token to replace current token
+        const refreshToken = await tokens.refreshToken(token, req.headers['user-agent']);
+        // If no token is found, and is not expired or revoked
+        if(!refreshToken || !refreshToken.user){
+            // Return error
+            return res.status(400).json({ success: false, error: 'Token failed to generate from refresh token.' });
+        }
+
+        // Create new JWT from token model
+        const jwtObject = jwt.generateJWT(refreshToken);
+        // If JWT was not created
+        if (!jwtObject.token) {
+           // Return error
+           return res.status(400).json({ success: false, error: 'Failed to generate JWT from Token object.' });
+        }
+
+        // Save refresh token
+        await refreshToken.save();
+
+        // Set refresh token cookie
+        res.cookie('testcookie', refreshToken.refresh_token, {
+           httpOnly: true,
+           sameSite: 'none',
+           secure: false
+        });
+
         // Return tokens
-        return res.status(200).json({ success: true, token: token, user: token.user });
+        return res.status(200).json({ success: true, auth: jwtObject });
     }
     // Catch error(s)
     catch (e) {
