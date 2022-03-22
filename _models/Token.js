@@ -12,8 +12,9 @@ const mongoose = require('mongoose');
 *
 **/
 const TokenSchema = new mongoose.Schema({
-    user_id: {
-        type: String,
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
         required: [ true, 'user_id is required for Token']
     },
     name: {
@@ -34,6 +35,21 @@ const TokenSchema = new mongoose.Schema({
     client: Object,
     refresh_token: String,
     refresh_id: String
+});
+
+/**
+*
+* Serialization settings
+*
+**/
+TokenSchema.set('toJSON', {
+    virtuals: true,
+    versionKey: false,
+    transform: function (doc, ret) {
+        // remove these props when object is serialized
+        delete ret._id;
+        delete ret.refresh_token;
+    }
 });
 
 /**

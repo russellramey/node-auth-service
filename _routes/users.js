@@ -22,7 +22,7 @@ router.get('/', async function(req, res) {
     try {
 
         // Find all users
-        let userArr = await users.getUsers({}, ['-password', '-salt']);
+        const userArr = await users.getUsers({}, ['-password', '-salt']);
         // Return users
         return res.status(200).json({ success: true, users: userArr });
 
@@ -49,13 +49,13 @@ router.get('/me', function(req, res) {
     passport.authenticate('jwt', { session: false }, function(err, auth, info) {
 
         // If no user, or unauthorized
-        if(!auth || !auth.user) {
+        if(!auth || !auth.token) {
             // Return error
             return res.status(401).json({ success: false, error: 'Invalid token' });
         }
 
         // Return user
-        return res.status(200).json({ success: true, user: auth.user });
+        return res.status(200).json({ success: true, user: auth.token.user });
 
     })(req, res);
 });

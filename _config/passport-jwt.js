@@ -42,24 +42,14 @@ module.exports = (passport) => {
 
         try{
             // Find token
-            let token = await tokens.getTokens({ _id: jwt_payload.sub }, [], true);
-
+            const token = await tokens.getTokens({ _id: jwt_payload.sub }, [], true);
             // If no token, or token expired
-            if(!token || token.revoked || (token.expires_at < Date.now())){
-                return done(null, false);
-            }
-
-            // Find user associated to token
-            let user = await users.getUsers({_id: token.user_id}, ['-password', '-salt'], true);
-
-            // If no user or user id
-            if(!user || !user._id){
-                // Return false
+            if(!token || !token.user || token.revoked || (token.expires_at < Date.now())){
                 return done(null, false);
             }
 
             // Return user and token objects
-            return done(null, { user, token });
+            return done(null, { token });
 
         } catch (e) {
 

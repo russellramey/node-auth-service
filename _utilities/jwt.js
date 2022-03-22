@@ -27,7 +27,7 @@ function generateJWT(obj) {
         // Subject
         sub: obj._id,
         // Unique ID
-        jti: hash.hashString((obj.user_id ? obj.user_id : null), obj._id.toString()).hash,
+        jti: hash.hashString((obj.user ? obj.user.toString() : null), obj._id.toString()).hash,
         // Issued date
         iat: Date.now()
     };

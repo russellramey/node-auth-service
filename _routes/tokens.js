@@ -22,7 +22,7 @@ router.get('/', async function(req, res) {
     try {
 
         // Find all users
-        let tokenArr = await tokens.getTokens({}, ['-refresh_token']);
+        const tokenArr = await tokens.getTokens({}, ['-refresh_token']);
         // Return users
         return res.status(200).json({ success: true, tokens: tokenArr });
 
@@ -55,19 +55,15 @@ router.post('/refresh', async function(req, res) {
     // Try
     try{
         // Find token from refresh token value
-        let token = await tokens.getTokens({refresh_token: req.cookies.testcookie}, [], true);
-
+        const token = await tokens.getTokens({refresh_token: req.cookies.testcookie}, [], true);
         // If no token is found, and is not expired or revoked
-        if(!token || token.revoked || token.expires_at < Date.now()){
+        if(!token || !token.user || token.revoked || token.expires_at < Date.now()){
             // Return error
             return res.status(401).json({ success: false, error: 'Invalid refresh token.' });
         }
 
-        // Find token user
-        let user = await users.getUsers({_id: token.user_id}, ['-password', '-salt'], true);
-
         // Return tokens
-        return res.status(200).json({ success: true, token: token, user: user });
+        return res.status(200).json({ success: true, token: token, user: token.user });
     }
     // Catch error(s)
     catch (e) {

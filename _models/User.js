@@ -51,6 +51,22 @@ const UserSchema = new mongoose.Schema({
 
 /**
 *
+* Serialization settings
+*
+**/
+UserSchema.set('toJSON', {
+    virtuals: true,
+    versionKey: false,
+    transform: function (doc, ret) {
+        // remove these props when object is serialized
+        delete ret._id;
+        delete ret.password;
+        delete ret.salt;
+    }
+});
+
+/**
+*
 * Model registration
 *
 **/

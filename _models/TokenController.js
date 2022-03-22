@@ -26,7 +26,7 @@ const newToken = (user, agent) => {
 
     // Create new token model object
     const token = new Token({
-        user_id: user._id,
+        user: user._id,
         client: client.parseUserAgent(agent),
         refresh_token: hash.hashString(Date.now().toString(), user.salt).hash,
         refresh_id: null,
@@ -53,11 +53,11 @@ const getTokens = async (query={}, keys=[], findOne=false) => {
 
     // If single is true
     if(findOne){
-        // Awiat for query
-        tokens = await Token.findOne(query).select(keys);
+        // Find single token, return with User object
+        tokens = await Token.findOne(query).populate('user').select(keys);
     } else {
-        // Awiat for query
-        tokens = await Token.find(query).select(keys);
+        // Find all tokens
+        tokens = await Token.find(query).populate('user').select(keys);
     }
 
     // Return data
