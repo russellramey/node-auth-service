@@ -36,7 +36,7 @@ router.get('/', async function(req, res) {
 
 /**
  *
- * User profile
+ * Authenticated user
  * Return single user profile from valid JWT
  * Method: GET
  * URI: /users/me
@@ -58,6 +58,39 @@ router.get('/me', function(req, res) {
         return res.status(200).json({ success: true, user: auth.token.user });
 
     })(req, res);
+});
+
+/**
+ *
+ * Single user
+ * Return single user object
+ * Method: GET
+ * URI: /users/:userid
+ * @param userid: String
+ * @return user: Object
+ *
+ **/
+router.get('/:userid', async function(req, res) {
+
+    // If no userid
+    if(!req.params.userid){
+        return res.status(400).json({error: true, message: 'Invalid user id.'});
+    }
+
+    try{
+
+        // Find all users
+        const user = await users.getUsers({_id: req.params.userid}, ['-password', '-salt'], true);
+        // Return users
+        return res.status(200).json({ success: true, user: user });
+
+    } catch (e){
+
+        // Return error
+        return res.status(400).json({ error: true, message: 'Invalid user id.' });
+
+    }
+
 });
 
 /**

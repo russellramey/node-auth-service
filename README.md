@@ -26,7 +26,7 @@ User authentication service, as REST API, used to authenticate users and request
 User model
 ```JS
 {
-	nickname: String,
+	username: String,
     email: String,
     email_valid: Boolean,
     password: String,
@@ -42,21 +42,23 @@ User model
 Token model
 ```JS
 {
-    user_id: String,
+    user: Object,
     name: String,
-    provider: String,
     revoked: Boolean,
     created_at: Date,
     expires_at: Date,
-	hash: String,
-	client: String
+	refresh_token: String,
+	refresh_id: String,
+	client: Object
 }
 ```
 
 ### Model Routes
 - GET /users - Return all users
-- GET /users/me - Return authenticated user
+- GET /users/me - Return current authenticated user
+- GET /users/:userid - Return single user with :userid
 - GET /tokens - Return all tokens
+- POST /tokens/refresh - Generate new token from refresh token
 
 ### Authentication Routes
-- /auth/local - Authenticate user via email/password
+- POST /auth/local - Authenticate current user or create new user
