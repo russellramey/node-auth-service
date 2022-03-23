@@ -106,7 +106,6 @@ const generateToken = async (user, client) => {
 const refreshToken = async (currentToken, client) => {
     // Create new token to replace current token
     const refreshToken = await generateToken(currentToken.user, client);
-
     // If no refreshToken
     if(!refreshToken) return false;
 
@@ -122,6 +121,36 @@ const refreshToken = async (currentToken, client) => {
 
 /**
  *
+ * Revoke token
+ * Create new token, revoke current token.
+ * @param token: String
+ * @return token: Object
+ **/
+const revokeToken = async (token) => {
+    // If no token passed
+    if(!token) return false;
+
+    // Decode token
+    token = jwt.parseJWT(token);
+    // If no token does not parse
+    if(!token || !token.sub) return false;
+
+    // Find current token object
+    const tokenObj = await getTokens({_id: token.sub}, [], true);
+    // If no token object, or not valid
+    if(!tokenObj || tokenObj.revoked) return false;
+
+    // Set token property
+    tokenObj.revoked = true;
+    // Save current token
+    await tokenObj.save();
+
+    // Return refreshToken
+    return tokenObj;
+};
+
+/**
+ *
  * Export
  *
  **/
@@ -129,5 +158,6 @@ module.exports = {
     newToken,
     getTokens,
     refreshToken,
-    generateToken
+    generateToken,
+    revokeToken
 };

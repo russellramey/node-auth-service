@@ -59,6 +59,7 @@ Token model
 - GET /users/:userid - Return single user with :userid
 - GET /tokens - Return all tokens
 - POST /tokens/refresh - Generate new token from refresh token
+- POST /tokens/revoke - Revoke token from post body or authorization header
 
 ### Authentication Routes
 - POST /auth/local - Authenticate current user or create new user

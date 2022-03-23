@@ -7,7 +7,6 @@
 const router = require('express').Router();
 const users = require('../_models/UserController');
 const tokens = require('../_models/TokenController');
-const jwt = require('../_utilities/jwt');
 
 /**
  *
@@ -30,7 +29,7 @@ router.get('/', async function(req, res) {
     } catch (e){
 
         // Return error
-        return res.status(400).json({ success: false, error: e.message });
+        return res.status(400).json({ success: false, error: 'getTokens: ' + e.message });
 
     }
 });
@@ -84,9 +83,59 @@ router.post('/refresh', async function(req, res) {
     // Catch error(s)
     catch (e) {
         // Return error
-        return res.status(400).json({ error: true, message: e.message });
+        return res.status(400).json({ error: true, message: 'refreshToken: ' + e.message });
     }
 });
+
+/**
+ *
+ * Revoke token
+ * Revoke / invalidate current token from header or post body
+ * Method: POST
+ * URI: /tokens/revoke
+ * @param token: String
+ * @return token: Object
+ *
+ **/
+router.post('/revoke', async function(req, res) {
+    // Token from header
+    let token = req.headers.authorization;
+
+    // If token req parameter exists
+    // overwrite token variable from auth header
+    if(req.body.token){
+        token = req.body.token;
+    }
+
+    try{
+        // Revoke current token
+        token = await tokens.revokeToken(token);
+        // If token is not valid
+        if(!token){
+            // Return error
+            return res.status(400).json({error: true, message: 'Invalid token.'});
+        }
+
+        // Set refresh token cookie to null and expired
+        res.cookie('testcookie', null, {
+           httpOnly: true,
+           sameSite: 'none',
+           secure: false,
+           expires: new Date(Date.now() - 3600)
+        });
+
+        // Return response
+        return res.status(200).json({success: true, message: 'Token has been revoked.'});
+
+    } catch (e){
+
+        // Return error
+        return res.status(400).json({error: true, message: 'revokeToken: ' + e.message});
+
+    }
+});
+
+
 
 /**
  *

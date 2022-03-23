@@ -76,7 +76,7 @@ function parseJWT(token){
     // Decode token
     let tokenObj = jsonwebtoken.decode(token);
     // Return data
-    return { tokenObj };
+    return tokenObj;
 }
 
 /**
