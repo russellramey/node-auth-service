@@ -67,10 +67,36 @@ const getUsers = async (query={}, keys=[], findOne=false) => {
 
 /**
  *
+ * Authenticate user
+ * Validate user email and password.
+ * @param data: Object
+ * @return user: Object || Boolean
+ **/
+const authenticateUser = async (data) => {
+    // Validate required paramters
+    if(!data || !data.password || !data.email) return false;
+
+    // Find user by email
+    const user = await getUsers({ email: data.email }, [], true);
+    // If no user is found, or no password in request
+    if(!user || user.provider.name !== 'local') return false;
+
+    // Check req.password hash matches found user passowrd hash
+    const isValidPass = hash.compareHashString(data.password, user.password, user.salt);
+    // If password is not valid
+    if (!isValidPass) return false;
+
+    // Return data
+    return user;
+};
+
+/**
+ *
  * Export
  *
  **/
 module.exports = {
     newUser,
-    getUsers
+    getUsers,
+    authenticateUser
 };

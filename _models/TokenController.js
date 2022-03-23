@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 const Token = mongoose.model('Token');
 const hash = require('../_utilities/hash');
 const client = require('../_utilities/client');
+const jwt = require('../_utilities/jwt');
 
 /**
  *
@@ -66,6 +67,36 @@ const getTokens = async (query={}, keys=[], findOne=false) => {
 
 /**
  *
+ * Generate User Token
+ * Create new token object and encode as JWT.
+ * @param user: Object
+ * @param client: String
+ * @return userToken: Object
+ **/
+const generateToken = async (user, client) => {
+
+    // Create new Token object
+    const userToken = newToken(user, client);
+    // If no userToken or no userToken ID
+    if(!userToken || !userToken._id) return false;
+
+    // Create new JWT from token model
+    const jwtObject = jwt.generateJWT(userToken);
+    // If JWT was not created
+    if (!jwtObject.token) return false;
+
+    // Save Token
+    await userToken.save();
+
+    // Return data
+    return {
+        ...userToken._doc,
+        jwt: jwtObject
+    };
+};
+
+/**
+ *
  * Generate Refresh token
  * Create new token, revoke current token.
  * @param currentToken: Object
@@ -74,9 +105,12 @@ const getTokens = async (query={}, keys=[], findOne=false) => {
  **/
 const refreshToken = async (currentToken, client) => {
     // Create new token to replace current token
-    const refreshToken = newToken(currentToken.user, client);
+    const refreshToken = await generateToken(currentToken.user, client);
 
-    // Update current token
+    // If no refreshToken
+    if(!refreshToken) return false;
+
+    // Update current token properties
     currentToken.revoked = true; // Revoke current token
     currentToken.refresh_id = refreshToken._id; // Update current token with refreshed id
     // Save current token
@@ -86,8 +120,6 @@ const refreshToken = async (currentToken, client) => {
     return refreshToken;
 };
 
-
-
 /**
  *
  * Export
@@ -96,5 +128,6 @@ const refreshToken = async (currentToken, client) => {
 module.exports = {
     newToken,
     getTokens,
-    refreshToken
+    refreshToken,
+    generateToken
 };

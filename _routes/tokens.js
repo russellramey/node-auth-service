@@ -71,17 +71,6 @@ router.post('/refresh', async function(req, res) {
             return res.status(400).json({ success: false, error: 'Token failed to generate from refresh token.' });
         }
 
-        // Create new JWT from token model
-        const jwtObject = jwt.generateJWT(refreshToken);
-        // If JWT was not created
-        if (!jwtObject.token) {
-           // Return error
-           return res.status(400).json({ success: false, error: 'Failed to generate JWT from Token object.' });
-        }
-
-        // Save refresh token
-        await refreshToken.save();
-
         // Set refresh token cookie
         res.cookie('testcookie', refreshToken.refresh_token, {
            httpOnly: true,
@@ -90,7 +79,7 @@ router.post('/refresh', async function(req, res) {
         });
 
         // Return tokens
-        return res.status(200).json({ success: true, auth: jwtObject });
+        return res.status(200).json({ success: true, auth: refreshToken.jwt });
     }
     // Catch error(s)
     catch (e) {

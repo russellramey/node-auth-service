@@ -7,8 +7,8 @@
 const router = require('express').Router();
 const users = require('../_models/UserController');
 const tokens = require('../_models/TokenController');
-const hash = require('../_utilities/hash');
-const jwt = require('../_utilities/jwt');
+// const hash = require('../_utilities/hash');
+// const jwt = require('../_utilities/jwt');
 
 /**
  *
@@ -21,14 +21,29 @@ const jwt = require('../_utilities/jwt');
  **/
 const createUser = async (req, res) => {
     // Create new user object
-    let user = users.newUser(req.body);
+    const user = users.newUser(req.body);
 
     try{
 
         // Save new user
-        user = await user.save();
+        await user.save();
+
+        // Create new Token object
+        const userToken = await tokens.generateToken(user, req.headers['user-agent']);
+        // If no userToken, or refresh token
+        if(!userToken || !userToken.refresh_token){
+            return res.status(400).json({ success: false, message: "Failed to save Token object." });
+        }
+
+        // Set refresh token cookie
+        res.cookie('testcookie', userToken.refresh_token, {
+           httpOnly: true,
+           sameSite: 'none',
+           secure: false
+        });
+
         // Return success with user
-        return res.json({ success: true, user: user });
+        return res.json({ success: true, auth: userToken.jwt });
 
     } catch(e){
 
@@ -49,37 +64,20 @@ const createUser = async (req, res) => {
  **/
 const authenticateUser = async (req, res) => {
     try {
-        // Find user by email
-        const user = await users.getUsers({ email: req.body.email }, [], true);
-        // If no user is found, or no password in request
-        if(!user || !req.body.password || user.provider.name !== 'local') {
-            return res.status(401).json({ success: false, message: "Invalid credentials" });
-        }
 
-        // Check req.password hash matches found user passowrd hash
-        const isValidPass = hash.compareHashString(req.body.password, user.password, user.salt);
-        // If password is not valid
-        if (!isValidPass) {
-            return res.status(401).json({ success: false, message: "Invalid credentials" });
+        // Authenticate user
+        const user = await users.authenticateUser(req.body);
+        // If user is not authenticated
+        if(!user) {
+            return res.status(401).json({ success: false, message: "Invalid credentials." });
         }
 
         // Create new Token object
-        const userToken = tokens.newToken(user, req.headers['user-agent']);
-        // If no userToken or no userToken ID
-        if(!userToken || !userToken._id) {
+        const userToken = await tokens.generateToken(user, req.headers['user-agent']);
+        // If no userToken, or refresh token
+        if(!userToken || !userToken.refresh_token){
             return res.status(400).json({ success: false, message: "Failed to save Token object." });
         }
-
-        // Create new JWT from token model
-        const jwtObject = jwt.generateJWT(userToken);
-        // If JWT was not created
-        if (!jwtObject.token) {
-           // Return error
-           return res.status(400).json({ success: false, error: 'Failed to generate JWT from Token object.' });
-        }
-
-        // Save Token
-        await userToken.save();
 
         // Set refresh token cookie
         res.cookie('testcookie', userToken.refresh_token, {
@@ -89,7 +87,7 @@ const authenticateUser = async (req, res) => {
         });
 
         // Return success
-        return res.status(200).json({ success: true, auth: jwtObject });
+        return res.status(200).json({ success: true, auth: userToken.jwt });
 
     } catch (e) {
 
