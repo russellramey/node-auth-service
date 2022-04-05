@@ -55,8 +55,8 @@ Token model
 
 ### Model Routes
 - GET /users - Return all users
-- GET /users/me - Return current authenticated user
-- GET /users/:userid - Return single user with :userid
+- GET /users/me - Return current authenticated user (via Token)
+- GET /users/:userid - Return single user (via ID)
 - GET /tokens - Return all tokens
 - POST /tokens/refresh - Generate new token from refresh token
 - POST /tokens/revoke - Revoke token from post body or authorization header
