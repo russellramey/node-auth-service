@@ -15,11 +15,12 @@ const TokenSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: [ true, 'user_id is required for Token']
+        required: [ true, '[user_id] is required for Token']
     },
     name: {
         type: String,
-        default: 'User Access Token'
+        default: null,
+        required: [ true, '[name] is required for Token']
     },
     revoked: {
         type: Boolean,

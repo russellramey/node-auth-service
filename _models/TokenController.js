@@ -18,7 +18,7 @@ const jwt = require('../_utilities/jwt');
  * @param agent: Object / String
  * @return Object: token
  **/
-const newToken = (user, agent) => {
+const newToken = (user, agent, refresh=true) => {
 
     // Validate user params
     if (!user || !user._id || !user.salt || !agent) {
@@ -29,7 +29,7 @@ const newToken = (user, agent) => {
     const token = new Token({
         user: user._id,
         client: client.parseUserAgent(agent),
-        refresh_token: hash.hashString(Date.now().toString(), user.salt).hash,
+        refresh_token: (refresh ? hash.hashString(Date.now().toString(), user.salt).hash : null),
         refresh_id: null,
         expires_at: Date.now() + (259200 * 1000), // 3 days from now
     });
@@ -73,13 +73,16 @@ const getTokens = async (query={}, keys=[], findOne=false) => {
  * @param client: String
  * @return userToken: Object
  **/
-const generateToken = async (user, client) => {
+const generateUserToken = async (user, client) => {
 
     // Create new Token object
     const userToken = newToken(user, client);
     // If no userToken or no userToken ID
     if(!userToken || !userToken._id) return false;
 
+    // Update default object properties
+    userToken.name = 'user_access_token'
+    
     // Create new JWT from token model
     const jwtObject = jwt.generateJWT(userToken);
     // If JWT was not created
@@ -97,6 +100,35 @@ const generateToken = async (user, client) => {
 
 /**
  *
+ * Generate Passowrd Token
+ * Create new token object for password resets.
+ * @param user: Object
+ * @param client: String
+ * @return passwordToken: Object
+ **/
+ const generatePasswordToken = async (user, client) => {
+
+    // Create new Token object, no refresh token
+    const passwordToken = newToken(user, client, false);
+    // If no userToken or no userToken ID
+    if(!passwordToken || !passwordToken._id) return false;
+
+    // Update default object properties
+    passwordToken.name = 'password_reset_token'
+    passwordToken.expires_at = Date.now() + (900 * 1000), // 15 mins from now
+
+    // Save Token
+    await passwordToken.save();
+
+    // Return data
+    return {
+        ...passwordToken._doc,
+        token: passwordToken._id + '-' + hash.hashString(passwordToken._id.toString(), passwordToken.user.toString()).hash
+    };
+};
+
+/**
+ *
  * Generate Refresh token
  * Create new token, revoke current token.
  * @param currentToken: Object
@@ -105,7 +137,7 @@ const generateToken = async (user, client) => {
  **/
 const refreshToken = async (currentToken, client) => {
     // Create new token to replace current token
-    const refreshToken = await generateToken(currentToken.user, client);
+    const refreshToken = await generateUserToken(currentToken.user, client);
     // If no refreshToken
     if(!refreshToken) return false;
 
@@ -158,6 +190,7 @@ module.exports = {
     newToken,
     getTokens,
     refreshToken,
-    generateToken,
+    generateUserToken,
+    generatePasswordToken,
     revokeToken
 };

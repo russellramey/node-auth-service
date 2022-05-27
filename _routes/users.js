@@ -81,6 +81,12 @@ router.get('/:userid', async function(req, res) {
 
         // Find all users
         const user = await users.getUsers({_id: req.params.userid}, ['-password', '-salt'], true);
+
+        // If no user
+        if(!user){
+            return res.status(400).json({error: true, message: 'Invalid user id.'});
+        }
+
         // Return users
         return res.status(200).json({ success: true, user: user });
 
