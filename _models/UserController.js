@@ -13,7 +13,7 @@ const hash = require('../_utilities/hash');
  * Create new user object
  * Create a new user from User Model.
  * @param data: Object
- * @return user: Object
+ * @return Object
  **/
 const newUser = (data) => {
 
@@ -31,7 +31,7 @@ const newUser = (data) => {
         password: password.hash,
         salt: password.salt,
         email: data.email,
-        scopes: ['user']
+        scopes: ['USER']
     });
 
     // Return user
@@ -45,7 +45,7 @@ const newUser = (data) => {
  * @param query: Object
  * @param keys: Array
  * @param findOne: Boolean
- * @return users: Array | Object
+ * @return Array | Object
  **/
 const getUsers = async (query={}, keys=[], findOne=false) => {
 
@@ -70,7 +70,7 @@ const getUsers = async (query={}, keys=[], findOne=false) => {
  * Authenticate user
  * Validate user email and password.
  * @param data: Object
- * @return user: Object || Boolean
+ * @return Object | Boolean
  **/
 const authenticateUser = async (data) => {
     // Validate required paramters

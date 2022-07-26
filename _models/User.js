@@ -33,20 +33,15 @@ const UserSchema = new mongoose.Schema({
             name: 'local'
         }
     },
-    created_at: {
-        type: Date,
-        default: Date.now()
-    },
-    updated_at: {
-        type: Date,
-        default: Date.now()
-    },
     email_valid: {
         type: Boolean,
         default: 0
     },
     salt: String,
     scopes: Array
+}, { 
+    // Timestamps
+    timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } 
 });
 
 /**
