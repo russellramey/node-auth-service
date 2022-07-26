@@ -7,7 +7,6 @@
 const mongoose = require('mongoose');
 const Token = mongoose.model('Token');
 const hash = require('../_utilities/hash');
-const client = require('../_utilities/client');
 const jwt = require('../_utilities/jwt');
 
 /**
@@ -15,22 +14,24 @@ const jwt = require('../_utilities/jwt');
  * Create new token object
  * Create a new user from User Model.
  * @param user: Object
- * @param agent: Object / String
- * @return Object: token
+ * @param refresh: Boolean
+ * @return Object
  **/
-const newToken = (user, agent, refresh=true) => {
+const newToken = (user, refresh=true) => {
 
     // Validate user params
-    if (!user || !user._id || !user.salt || !agent) {
+    if (!user || !user._id || !user.salt) {
         return false;
     }
 
     // Create new token model object
     const token = new Token({
+        // User id
         user: user._id,
-        client: client.parseUserAgent(agent),
+        // If refresh param true, create unique refresh token
         refresh_token: (refresh ? hash.hashString(Date.now().toString(), user.salt).hash : null),
         refresh_id: null,
+        // Expiration datetime
         expires_at: Date.now() + (259200 * 1000), // 3 days from now
     });
 
@@ -45,11 +46,11 @@ const newToken = (user, agent, refresh=true) => {
  * @param query: Object
  * @param keys: Array
  * @param findOne: Boolean
- * @return tokens: Array | Object
+ * @return Array | Object
  **/
 const getTokens = async (query={}, keys=[], findOne=false) => {
 
-    // Users placeholder
+    // Tokens placeholder
     let tokens;
 
     // If single is true
@@ -70,13 +71,12 @@ const getTokens = async (query={}, keys=[], findOne=false) => {
  * Generate User Token
  * Create new token object and encode as JWT.
  * @param user: Object
- * @param client: String
- * @return userToken: Object
+ * @return Object
  **/
-const generateUserToken = async (user, client) => {
+const generateUserToken = async (user) => {
 
     // Create new Token object
-    const userToken = newToken(user, client);
+    const userToken = newToken(user);
     // If no userToken or no userToken ID
     if(!userToken || !userToken._id) return false;
 
@@ -103,13 +103,12 @@ const generateUserToken = async (user, client) => {
  * Generate Passowrd Token
  * Create new token object for password resets.
  * @param user: Object
- * @param client: String
- * @return passwordToken: Object
+ * @return Object
  **/
- const generatePasswordToken = async (user, client) => {
+ const generatePasswordToken = async (user) => {
 
     // Create new Token object, no refresh token
-    const passwordToken = newToken(user, client, false);
+    const passwordToken = newToken(user, false);
     // If no userToken or no userToken ID
     if(!passwordToken || !passwordToken._id) return false;
 
@@ -132,12 +131,11 @@ const generateUserToken = async (user, client) => {
  * Generate Refresh token
  * Create new token, revoke current token.
  * @param currentToken: Object
- * @param client: String
- * @return refreshToken: Object
+ * @return Object
  **/
-const refreshToken = async (currentToken, client) => {
+const refreshToken = async (currentToken) => {
     // Create new token to replace current token
-    const refreshToken = await generateUserToken(currentToken.user, client);
+    const refreshToken = await generateUserToken(currentToken.user);
     // If no refreshToken
     if(!refreshToken) return false;
 
@@ -156,7 +154,7 @@ const refreshToken = async (currentToken, client) => {
  * Revoke token
  * Create new token, revoke current token.
  * @param token: String
- * @return token: Object
+ * @return Object
  **/
 const revokeToken = async (token) => {
     // If no token passed

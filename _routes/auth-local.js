@@ -29,7 +29,7 @@ const createUser = async (req, res) => {
         await user.save();
 
         // Create new Token object
-        const userToken = await tokens.generateUserToken(user, req.headers['user-agent']);
+        const userToken = await tokens.generateUserToken(user);
         // If no userToken, or refresh token
         if(!userToken || !userToken.refresh_token){
             return res.status(400).json({ success: false, message: "Failed to save Token object." });
@@ -73,7 +73,7 @@ const authenticateUser = async (req, res) => {
         }
 
         // Create new Token object
-        const userToken = await tokens.generateUserToken(user, req.headers['user-agent']);
+        const userToken = await tokens.generateUserToken(user);
         // If no userToken, or refresh token
         if(!userToken || !userToken.refresh_token){
             return res.status(400).json({ success: false, message: "Failed to save Token object." });
@@ -144,7 +144,7 @@ router.post('/local', function(req, res) {
         }
 
         // Create new Token object
-        const passwordToken = await tokens.generatePasswordToken(user, req.headers['user-agent']);
+        const passwordToken = await tokens.generatePasswordToken(user);
         // If no userToken, or refresh token
         if(!passwordToken){
             return res.status(400).json({ success: false, message: "Failed to save Token object." });

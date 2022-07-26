@@ -33,7 +33,6 @@ const TokenSchema = new mongoose.Schema({
     expires_at: {
         type: Date
     },
-    client: Object,
     refresh_token: String,
     refresh_id: String
 });
