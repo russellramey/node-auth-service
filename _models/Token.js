@@ -26,15 +26,15 @@ const TokenSchema = new mongoose.Schema({
         type: Boolean,
         default: 0
     },
-    created_at: {
-        type: Date,
-        default: Date.now()
-    },
+    refresh_token: String,
+    refresh_id: String,
     expires_at: {
         type: Date
-    },
-    refresh_token: String,
-    refresh_id: String
+    }
+},
+{
+    // Timestamps
+    timestamps: { createdAt: 'created_at', updatedAt: false } 
 });
 
 /**
