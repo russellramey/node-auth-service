@@ -6,7 +6,6 @@
 **/
 const jsonwebtoken = require('jsonwebtoken');
 const fs = require('fs');
-const path = require('path');
 const hash = require('../_utilities/hash');
 require('dotenv').config();
 
@@ -27,7 +26,7 @@ function generateJWT(obj) {
         // Subject
         sub: obj._id,
         // Unique ID
-        jti: hash.hashString((obj.user ? obj.user.toString() : null), obj._id.toString()).hash,
+        jti: hash.hashString((obj.user ? obj.user._id.toString() : null), obj._id.toString()).hash,
         // Issued date
         iat: Date.now()
     };
