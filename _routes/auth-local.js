@@ -9,6 +9,7 @@ const User = require('../_models/User');
 const Token = require('../_models/Token');
 const hash = require('../_utilities/hash');
 const cookie = require('../_utilities/cookie');
+const jwt = require('../_utilities/jwt');
 
 /**
  *
@@ -118,13 +119,12 @@ router.post('/local', async function(req, res) {
 
     try {
 
-        // Parse token param
-        let token_id = req.body.token.split('-')[0];
-        let token_hash = req.body.token.split('-')[1];
+        // Verify / Decode token
+        let tokenObj = await jwt.parseJWT(req.body.token)
 
         // Find Token object
-        const token = await Token.getTokens({ _id: token_id }, [], true);
-        if(!token || token.revoked || token.expires_at < Date.now() || token_hash !== hash.hashString(token.id.toString(), token.user.id.toString()).hash){
+        const token = await Token.getTokens({ _id: tokenObj.sub }, [], true);
+        if(!token || token.revoked || token.expires_at < Date.now()){
             return res.status(400).json({ success: false, message: 'Bad request: invalid reset token.' });
         };
        

@@ -57,7 +57,7 @@ const generateUserToken = async (user) => {
     userToken.name = 'user_access_token'
     
     // Create new JWT from token model
-    const jwtObject = jwt.generateJWT(userToken);
+    const jwtObject = await jwt.generateJWT({ sub: userToken.id, hash: hash.hashString(userToken.id.toString(), user.id.toString()).hash });
     // If JWT was not created
     if (!jwtObject.token) return false;
 
@@ -92,10 +92,15 @@ const generateUserToken = async (user) => {
     // Save Token
     await passwordToken.save();
 
+    // Create new JWT from token model
+    const jwtObject = await jwt.generateJWT({ sub: passwordToken.id, expiresIn: 900000 });
+    // If JWT was not created
+    if (!jwtObject.token) return false;
+
     // Return data
     return {
         ...passwordToken._doc,
-        token: passwordToken._id + '-' + hash.hashString(passwordToken._id.toString(), passwordToken.user.toString()).hash
+        token: jwtObject.token
     };
 };
 

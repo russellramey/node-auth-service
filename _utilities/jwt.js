@@ -6,7 +6,6 @@
 **/
 const jsonwebtoken = require('jsonwebtoken');
 const fs = require('fs');
-const hash = require('../_utilities/hash');
 require('dotenv').config();
 
 /**
@@ -14,19 +13,21 @@ require('dotenv').config();
 * Generate JWT
 * Create Json Web Token via supplied object as parameter.
 *
-* @param obj: Object
+* @param args.sub: String
+* @param args.hash: String
+* @param args.expiresIn: Number
 *
 **/
-function generateJWT(obj) {
+const generateJWT = (args) => {
     // Signed token variable
     let signedToken;
 
     // Create payload object
     const payload = {
         // Subject
-        sub: obj._id,
+        sub: args.sub,
         // Unique ID
-        jti: hash.hashString((obj.user ? obj.user._id.toString() : null), obj._id.toString()).hash,
+        jti: args.hash,
         // Issued date
         iat: Date.now()
     };
@@ -34,7 +35,7 @@ function generateJWT(obj) {
     // Create options object
     let options = {
         // Expiration data
-        expiresIn: (86400 * 1000), // 1 days from issue
+        expiresIn: (args.expiresIn ? args.expiresIn : (86400 * 1000)), // Default 1 day from issue
         // Desired algorithm (must match parser)
         algorithm: 'RS256'
     };
@@ -69,11 +70,11 @@ function generateJWT(obj) {
 * @param token: String
 *
 **/
-function parseJWT(token){
+const parseJWT = async (token) => {
     // Replace token prefix
     token = token.replace('Bearer ', '');
     // Decode token
-    let tokenObj = jsonwebtoken.decode(token);
+    let tokenObj = await jsonwebtoken.verify(token, fs.readFileSync(process.env.KEY_PUB_PATH, 'utf8'));
     // Return data
     return tokenObj;
 }
