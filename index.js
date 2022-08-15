@@ -39,7 +39,8 @@ require('./_config/database');
 * Models
 *
 **/
-require('./_models');
+require('./_models/_schema/UserSchema');
+require('./_models/_schema/TokenSchema');
 
 /**
 *

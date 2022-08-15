@@ -5,8 +5,8 @@
  *
  **/
 const router = require('express').Router();
-const users = require('../_models/UserController');
-const tokens = require('../_models/TokenController');
+const User = require('../_models/User');
+const Token = require('../_models/Token');
 
 /**
  *
@@ -22,7 +22,7 @@ router.get('/', async function(req, res) {
     try {
 
         // Find all users
-        const tokenArr = await tokens.getTokens({}, ['-refresh_token']);
+        const tokenArr = await Token.getTokens({}, ['-refresh_token']);
         // Return users
         return res.status(200).json({ success: true, tokens: tokenArr });
 
@@ -55,7 +55,7 @@ router.post('/refresh', async function(req, res) {
     // Try
     try{
         // Find token from refresh token value
-        const token = await tokens.getTokens({refresh_token: req.cookies.testcookie}, [], true);
+        const token = await Token.getTokens({refresh_token: req.cookies.testcookie}, [], true);
         // If no token is found, and is not expired or revoked
         if(!token || !token.user || token.revoked || token.expires_at < Date.now()){
             // Return error
@@ -63,7 +63,7 @@ router.post('/refresh', async function(req, res) {
         }
 
         // Create new token to replace current token
-        const refreshToken = await tokens.refreshToken(token, req.headers['user-agent']);
+        const refreshToken = await Token.refreshToken(token, req.headers['user-agent']);
         // If no token is found, and is not expired or revoked
         if(!refreshToken || !refreshToken.user){
             // Return error
@@ -109,7 +109,7 @@ router.post('/revoke', async function(req, res) {
 
     try{
         // Revoke current token
-        token = await tokens.revokeToken(token);
+        token = await Token.revokeToken(token);
         // If token is not valid
         if(!token){
             // Return error

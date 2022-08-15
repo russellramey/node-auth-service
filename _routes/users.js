@@ -6,7 +6,7 @@
  **/
 const passport = require('passport');
 const router = require('express').Router();
-const users = require('../_models/UserController');
+const User = require('../_models/User');
 
 /**
  *
@@ -22,7 +22,7 @@ router.get('/', async function(req, res) {
     try {
 
         // Find all users
-        const userArr = await users.getUsers({}, ['-password', '-salt']);
+        const userArr = await User.getUsers({}, ['-password', '-salt']);
         // Return users
         return res.status(200).json({ success: true, users: userArr });
 
@@ -80,7 +80,7 @@ router.get('/:userid', async function(req, res) {
     try{
 
         // Find all users
-        const user = await users.getUsers({_id: req.params.userid}, ['-password', '-salt'], true);
+        const user = await Token.getUsers({_id: req.params.userid}, ['-password', '-salt'], true);
 
         // If no user
         if(!user){

@@ -5,10 +5,9 @@
  *
  **/
 const router = require('express').Router();
-const users = require('../_models/UserController');
-const tokens = require('../_models/TokenController');
+const User = require('../_models/User');
+const Token = require('../_models/Token');
 const hash = require('../_utilities/hash');
-// const jwt = require('../_utilities/jwt');
 
 /**
  *
@@ -21,7 +20,7 @@ const hash = require('../_utilities/hash');
  **/
 const createUser = async (req, res) => {
     // Create new user object
-    const user = users.newUser(req.body);
+    const user = User.newUser(req.body);
 
     try{
 
@@ -29,7 +28,7 @@ const createUser = async (req, res) => {
         await user.save();
 
         // Create new Token object
-        const userToken = await tokens.generateUserToken(user);
+        const userToken = await Token.generateUserToken(user);
         // If no userToken, or refresh token
         if(!userToken || !userToken.refresh_token){
             return res.status(400).json({ success: false, message: "Failed to save Token object." });
@@ -66,14 +65,14 @@ const authenticateUser = async (req, res) => {
     try {
 
         // Authenticate user
-        const user = await users.authenticateUser(req.body);
+        const user = await User.authenticateUser(req.body);
         // If user is not authenticated
         if(!user) {
             return res.status(401).json({ success: false, message: "Invalid credentials." });
         }
 
         // Create new Token object
-        const userToken = await tokens.generateUserToken(user);
+        const userToken = await Token.generateUserToken(user);
         // If no userToken, or refresh token
         if(!userToken || !userToken.refresh_token){
             return res.status(400).json({ success: false, message: "Failed to save Token object." });
@@ -136,7 +135,7 @@ router.post('/local', function(req, res) {
     try {
 
         // find user
-        const user = await users.getUsers({ email: req.body.email }, [], true);
+        const user = await User.getUsers({ email: req.body.email }, [], true);
         // If no user is found
         if(!user){
             // Return error
@@ -144,7 +143,7 @@ router.post('/local', function(req, res) {
         }
 
         // Create new Token object
-        const passwordToken = await tokens.generatePasswordToken(user);
+        const passwordToken = await Token.generatePasswordToken(user);
         // If no userToken, or refresh token
         if(!passwordToken){
             return res.status(400).json({ success: false, message: "Failed to save Token object." });
@@ -187,7 +186,7 @@ router.post('/local', function(req, res) {
         let token_hash = req.body.token.split('-')[1];
 
         // Find Token object
-        const Token = await tokens.getTokens({ _id: token_id }, [], true);
+        const Token = await Token.getTokens({ _id: token_id }, [], true);
         if(!Token || Token.revoked || Token.expires_at < Date.now() || token_hash !== hash.hashString(Token.id.toString(), Token.user.id.toString()).hash){
             return res.status(400).json({ success: false, message: 'Bad request: invalid reset token.' });
         };
