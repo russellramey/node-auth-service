@@ -41,33 +41,6 @@ const newToken = (user, refresh=true) => {
 
 /**
  *
- * Query for Tokens
- * Find and return tokens in database.
- * @param query: Object
- * @param keys: Array
- * @param findOne: Boolean
- * @return Array | Object
- **/
-const getTokens = async (query={}, keys=[], findOne=false) => {
-
-    // Tokens placeholder
-    let tokens;
-
-    // If single is true
-    if(findOne){
-        // Find single token, return with User object
-        tokens = await Token.findOne(query).populate('user').select(keys);
-    } else {
-        // Find all tokens
-        tokens = await Token.find(query).populate('user').select(keys);
-    }
-
-    // Return data
-    return tokens;
-};
-
-/**
- *
  * Generate User Token
  * Create new token object and encode as JWT.
  * @param user: Object
@@ -181,14 +154,41 @@ const revokeToken = async (token) => {
 
 /**
  *
+ * Query for Tokens
+ * Find and return tokens in database.
+ * @param query: Object
+ * @param keys: Array
+ * @param findOne: Boolean
+ * @return Array | Object
+ **/
+ const getTokens = async (query={}, keys=[], findOne=false) => {
+
+    // Tokens placeholder
+    let tokens;
+
+    // If single is true
+    if(findOne){
+        // Find single token, return with User object
+        tokens = await Token.findOne(query).populate('user').select(keys);
+    } else {
+        // Find all tokens
+        tokens = await Token.find(query).populate('user').select(keys);
+    }
+
+    // Return data
+    return tokens;
+};
+
+/**
+ *
  * Export
  *
  **/
 module.exports = {
     newToken,
-    getTokens,
-    refreshToken,
     generateUserToken,
     generatePasswordToken,
-    revokeToken
+    refreshToken,
+    revokeToken,
+    getTokens
 };

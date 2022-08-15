@@ -51,7 +51,7 @@ router.get('/me', function(req, res) {
         // If no user, or unauthorized
         if(!auth || !auth.token) {
             // Return error
-            return res.status(401).json({ success: false, error: 'Invalid token' });
+            return res.status(401).json({ success: false, error: 'Invalid token.' });
         }
 
         // Return user

@@ -7,6 +7,7 @@
 const router = require('express').Router();
 const User = require('../_models/User');
 const Token = require('../_models/Token');
+const cookie = require('../_utilities/cookie');
 
 /**
  *
@@ -71,11 +72,8 @@ router.post('/refresh', async function(req, res) {
         }
 
         // Set refresh token cookie
-        res.cookie('testcookie', refreshToken.refresh_token, {
-           httpOnly: true,
-           sameSite: 'none',
-           secure: false
-        });
+        const cookieObj = await cookie.generateCookie( {name: 'testcookie', value: refreshToken.refresh_token })
+        res.cookie(cookieObj.name, cookieObj.value, cookieObj.options);
 
         // Return tokens
         return res.status(200).json({ success: true, auth: refreshToken.jwt });
@@ -111,18 +109,10 @@ router.post('/revoke', async function(req, res) {
         // Revoke current token
         token = await Token.revokeToken(token);
         // If token is not valid
-        if(!token){
-            // Return error
-            return res.status(400).json({error: true, message: 'Invalid token.'});
-        }
+        if(!token) return res.status(400).json({error: true, message: 'Invalid token.'});
 
         // Set refresh token cookie to null and expired
-        res.cookie('testcookie', null, {
-           httpOnly: true,
-           sameSite: 'none',
-           secure: false,
-           expires: new Date(Date.now() - 3600)
-        });
+        res.cookie('testcookie', null);
 
         // Return response
         return res.status(200).json({success: true, message: 'Token has been revoked.'});

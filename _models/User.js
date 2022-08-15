@@ -15,7 +15,7 @@ const hash = require('../_utilities/hash');
  * @param data: Object
  * @return Object
  **/
-const newUser = (data) => {
+const newUser = async (data) => {
 
     // Validate data params
     if (!data || !data.email || !data.password) {
@@ -34,35 +34,11 @@ const newUser = (data) => {
         scopes: ['USER']
     });
 
+    // Save user
+    await user.save();
+
     // Return user
     return user;
-};
-
-/**
- *
- * Query for users
- * Find and return users in database.
- * @param query: Object
- * @param keys: Array
- * @param findOne: Boolean
- * @return Array | Object
- **/
-const getUsers = async (query={}, keys=[], findOne=false) => {
-
-    // Users placeholder
-    let users = [];
-
-    // If single is true
-    if(findOne){
-        // Awiat for query
-        users = await User.findOne(query).select(keys);
-    } else {
-        // Awiat for query
-        users = await User.find(query).select(keys);
-    }
-
-    // Find multiple users based on params
-    return users;
 };
 
 /**
@@ -70,7 +46,7 @@ const getUsers = async (query={}, keys=[], findOne=false) => {
  * Authenticate user
  * Validate user email and password.
  * @param data: Object
- * @return Object | Boolean
+ * @return Object
  **/
 const authenticateUser = async (data) => {
     // Validate required paramters
@@ -92,11 +68,39 @@ const authenticateUser = async (data) => {
 
 /**
  *
+ * Query for users
+ * Find and return users in database.
+ * @param query: Object
+ * @param keys: Array
+ * @param findOne: Boolean
+ * @return Array | Object
+ **/
+ const getUsers = async (query={}, keys=[], findOne=false) => {
+
+    // Users placeholder
+    let users = [];
+
+    // If single is true
+    if(findOne){
+        // Awiat for query
+        users = await User.findOne(query).select(keys);
+    } else {
+        // Awiat for query
+        users = await User.find(query).select(keys);
+    }
+
+    // Find multiple users based on params
+    return users;
+
+};
+
+/**
+ *
  * Export
  *
  **/
 module.exports = {
     newUser,
-    getUsers,
-    authenticateUser
+    authenticateUser,
+    getUsers
 };

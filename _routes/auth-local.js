@@ -8,110 +8,52 @@ const router = require('express').Router();
 const User = require('../_models/User');
 const Token = require('../_models/Token');
 const hash = require('../_utilities/hash');
-
-/**
- *
- * Create new user
- * Add user to database
- * @param req: Request object
- * @param res: Response object
- * @return res: Response object
- *
- **/
-const createUser = async (req, res) => {
-    // Create new user object
-    const user = User.newUser(req.body);
-
-    try{
-
-        // Save new user
-        await user.save();
-
-        // Create new Token object
-        const userToken = await Token.generateUserToken(user);
-        // If no userToken, or refresh token
-        if(!userToken || !userToken.refresh_token){
-            return res.status(400).json({ success: false, message: "Failed to save Token object." });
-        }
-
-        // Set refresh token cookie
-        res.cookie('testcookie', userToken.refresh_token, {
-           httpOnly: true,
-           sameSite: 'none',
-           secure: false
-        });
-
-        // Return success with user
-        return res.json({ success: true, auth: userToken.jwt });
-
-    } catch(e){
-
-        // Return error
-        return res.status(400).json({ success: false, error:'createUser: ' + e.message });
-
-    }
-};
-
-/**
- *
- * Authenticate user
- * Issue new access token (jwt) via Email/Password
- * @param req.email: String
- * @param req.password: String
- * @return auth: Object
- *
- **/
-const authenticateUser = async (req, res) => {
-    try {
-
-        // Authenticate user
-        const user = await User.authenticateUser(req.body);
-        // If user is not authenticated
-        if(!user) {
-            return res.status(401).json({ success: false, message: "Invalid credentials." });
-        }
-
-        // Create new Token object
-        const userToken = await Token.generateUserToken(user);
-        // If no userToken, or refresh token
-        if(!userToken || !userToken.refresh_token){
-            return res.status(400).json({ success: false, message: "Failed to save Token object." });
-        }
-
-        // Set refresh token cookie
-        res.cookie('testcookie', userToken.refresh_token, {
-           httpOnly: true,
-           sameSite: 'none',
-           secure: false
-        });
-
-        // Return success
-        return res.status(200).json({ success: true, auth: userToken.jwt });
-
-    } catch (e) {
-
-        // Return error
-        return res.status(400).json({ success: false, error: 'authenticateUser: ' + e.message });
-
-    }
-};
+const cookie = require('../_utilities/cookie');
 
 /**
  *
  * Local Auth
  * Method: POST
  * URI: /auth/local
- * @return res: Object
+ * @param req.body: Object
+ * @return Object
  *
  **/
-router.post('/local', function(req, res) {
-    // If request inclues newUser parameter
-    if(req.body.newUser === true){
-        // Create new user
-        return createUser(req, res);
+router.post('/local', async function(req, res) {
+
+    try{
+
+        // If newUser request
+        if(req.body.newUser === true){
+            // Create new user object
+            user = await User.newUser(req.body);
+        } else {
+            // Authenticate existing user
+            user = await User.authenticateUser(req.body);
+        }
+
+        // If no user
+        if(!user) return res.status(401).json({ success: false, message: 'Invalid credentials.'}); 
+
+        // Create new Token object
+        const userToken = await Token.generateUserToken(user);
+        // If no userToken, or refresh token
+        if(!userToken || !userToken.refresh_token) return res.status(400).json({ success: false, message: "Failed to generate Token object." });
+
+        // Set refresh token cookie
+        const cookieObj = await cookie.generateCookie( {name: 'testcookie', value: userToken.refresh_token })
+        res.cookie(cookieObj.name, cookieObj.value, cookieObj.options);
+
+        // Return success
+        return res.status(200).json({ success: true, auth: userToken.jwt });
+        
+    } catch (e){
+
+        // Return error
+        return res.status(400).json({ success: false, message: e.message });
+
     }
-    // Authenticate existing user
-    return authenticateUser(req, res);
+    
 });
 
 /**
@@ -121,7 +63,7 @@ router.post('/local', function(req, res) {
  * Method: POST
  * URI: /auth/local/password-token
  * @param req.email: String
- * @return token: Object
+ * @return Object
  *
  **/
  router.post('/local/password-token', async function(req, res) {
@@ -129,7 +71,7 @@ router.post('/local', function(req, res) {
     // If email is not present
     if(!req.body.email){
         // Return error
-        return res.status(400).json({ success: false, error: '[email] parameter is required.' });
+        return res.status(400).json({ success: false, message: '[email] parameter is required.' });
     }
 
     try {
@@ -137,17 +79,12 @@ router.post('/local', function(req, res) {
         // find user
         const user = await User.getUsers({ email: req.body.email }, [], true);
         // If no user is found
-        if(!user){
-            // Return error
-            return res.status(401).json({ success: false, error: 'Not authorized.' });
-        }
+        if(!user) return res.status(401).json({ success: false, message: 'Not authorized.' });
 
         // Create new Token object
         const passwordToken = await Token.generatePasswordToken(user);
         // If no userToken, or refresh token
-        if(!passwordToken){
-            return res.status(400).json({ success: false, message: "Failed to save Token object." });
-        }
+        if(!passwordToken) return res.status(400).json({ success: false, message: "Failed to save Token object." });
 
         // Return success
         return res.status(200).json({ success: true, token: passwordToken.token });
@@ -155,7 +92,7 @@ router.post('/local', function(req, res) {
     } catch (e){
 
         // Return error
-        return res.status(400).json({ success: false, error: e.message });
+        return res.status(400).json({ success: false, message: e.message });
 
     }
 });
@@ -168,7 +105,7 @@ router.post('/local', function(req, res) {
  * URI: /auth/local/password-reset
  * @param req.password: String
  * @param req.token: Stirng
- * @return Boolean
+ * @return Object
  *
  **/
  router.post('/local/password-reset', async function(req, res) {
@@ -193,10 +130,10 @@ router.post('/local', function(req, res) {
        
         // Set and save new password for user
         Token.user.password = hash.hashString(req.body.password, Token.user.salt).hash
-        Token.user.save()
+        await Token.user.save()
         // Revoke current token
         Token.revoked = true;
-        Token.save()
+        await Token.save()
 
         // Return success
         return res.status(200).json({ success: true, message: 'Password has been reset.' });
