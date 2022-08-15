@@ -123,17 +123,17 @@ router.post('/local', async function(req, res) {
         let token_hash = req.body.token.split('-')[1];
 
         // Find Token object
-        const Token = await Token.getTokens({ _id: token_id }, [], true);
-        if(!Token || Token.revoked || Token.expires_at < Date.now() || token_hash !== hash.hashString(Token.id.toString(), Token.user.id.toString()).hash){
+        const token = await Token.getTokens({ _id: token_id }, [], true);
+        if(!token || token.revoked || token.expires_at < Date.now() || token_hash !== hash.hashString(token.id.toString(), token.user.id.toString()).hash){
             return res.status(400).json({ success: false, message: 'Bad request: invalid reset token.' });
         };
        
         // Set and save new password for user
-        Token.user.password = hash.hashString(req.body.password, Token.user.salt).hash
-        await Token.user.save()
+        token.user.password = hash.hashString(req.body.password, token.user.salt).hash
+        await token.user.save()
         // Revoke current token
-        Token.revoked = true;
-        await Token.save()
+        token.revoked = true;
+        await token.save()
 
         // Return success
         return res.status(200).json({ success: true, message: 'Password has been reset.' });
