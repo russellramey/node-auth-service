@@ -139,7 +139,7 @@ const revokeToken = async (token) => {
     if(!token) return false;
 
     // Decode token
-    token = jwt.parseJWT(token);
+    token = await jwt.parseJWT(token);
     // If no token does not parse
     if(!token || !token.sub) return false;
 
