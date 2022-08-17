@@ -10,6 +10,7 @@ const Token = require('../_models/Token');
 const hash = require('../_utilities/hash');
 const cookie = require('../_utilities/cookie');
 const jwt = require('../_utilities/jwt');
+require('dotenv').config();
 
 /**
  *
@@ -42,7 +43,7 @@ router.post('/local', async function(req, res) {
         if(!userToken || !userToken.refresh_token) return res.status(400).json({ success: false, message: "Failed to generate Token object." });
 
         // Set refresh token cookie
-        const cookieObj = await cookie.generateCookie( {name: 'testcookie', value: userToken.refresh_token })
+        const cookieObj = await cookie.generateCookie( {name: process.env.REFRESH_TOKEN_NAME, value: userToken.refresh_token })
         res.cookie(cookieObj.name, cookieObj.value, cookieObj.options);
 
         // Return success

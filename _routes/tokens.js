@@ -8,6 +8,7 @@ const router = require('express').Router();
 const User = require('../_models/User');
 const Token = require('../_models/Token');
 const cookie = require('../_utilities/cookie');
+require('dotenv').config();
 
 /**
  *
@@ -48,15 +49,14 @@ router.get('/', async function(req, res) {
 router.post('/refresh', async function(req, res) {
 
     // If cookie does not exist
-    if(!req.cookies && !req.cookies.testcookie){
+    if(!req.cookies && !req.cookies[process.env.REFRESH_TOKEN_NAME]){
         // Return error
         return res.status(400).json({ success: false, error: 'Invalid refresh token.' });
     }
 
-    // Try
     try{
         // Find token from refresh token value
-        const token = await Token.getTokens({refresh_token: req.cookies.testcookie}, [], true);
+        const token = await Token.getTokens({refresh_token: req.cookies[process.env.REFRESH_TOKEN_NAME]}, [], true);
         // If no token is found, and is not expired or revoked
         if(!token || !token.user || token.revoked || token.expires_at < Date.now()){
             // Return error
@@ -72,14 +72,13 @@ router.post('/refresh', async function(req, res) {
         }
 
         // Set refresh token cookie
-        const cookieObj = await cookie.generateCookie( {name: 'testcookie', value: refreshToken.refresh_token })
+        const cookieObj = await cookie.generateCookie( {name: process.env.REFRESH_TOKEN_NAME, value: refreshToken.refresh_token })
         res.cookie(cookieObj.name, cookieObj.value, cookieObj.options);
 
         // Return tokens
         return res.status(200).json({ success: true, auth: refreshToken.jwt });
-    }
-    // Catch error(s)
-    catch (e) {
+        
+    } catch (e) {
         // Return error
         return res.status(400).json({ error: true, message: 'refreshToken: ' + e.message });
     }
