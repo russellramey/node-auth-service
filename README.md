@@ -63,5 +63,10 @@ Token model
 
 ### Authentication Routes
 - POST /auth/local - Authenticate current user or create new user
+    - password: String
+    - email: String
 - POST /auth/local/password-token - Request password reset token for user
-- POST /auth/local/password-reset - Reset user password via reset issued token
+    - email: String
+- POST /auth/local/password-reset - Reset user password via password reset token
+    - password: String
+    - token: String
