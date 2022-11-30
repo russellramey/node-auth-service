@@ -47,7 +47,13 @@ router.post('/local', async function(req, res) {
         res.cookie(cookieObj.name, cookieObj.value, cookieObj.options);
 
         // Return success
-        return res.status(200).json({ success: true, auth: userToken.jwt });
+        return res.status(200).json({ 
+            success: true, 
+            auth: {
+                ...userToken.jwt, 
+                refresh_token: userToken.refresh_token
+            } 
+        });
         
     } catch (e){
 

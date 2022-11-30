@@ -76,7 +76,13 @@ router.post('/refresh', async function(req, res) {
         res.cookie(cookieObj.name, cookieObj.value, cookieObj.options);
 
         // Return tokens
-        return res.status(200).json({ success: true, auth: refreshToken.jwt });
+        return res.status(200).json({ 
+            success: true, 
+            auth: {
+                ...refreshToken.jwt, 
+                refresh_token: refreshToken.refresh_token
+            } 
+        });
         
     } catch (e) {
         // Return error
